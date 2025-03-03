@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require "git_game_show"
+
+GitGameShow::CLI.start(ARGV)

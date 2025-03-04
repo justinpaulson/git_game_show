@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1] - 2025-03-04
+
+### Fixed
+- Improved executable permissions management for better installation experience
+- Added troubleshooting instructions for Ruby environment managers (rbenv/asdf)
+- Enhanced installation documentation
+
 ## [0.1.0] - 2025-03-02
 
 ### Added

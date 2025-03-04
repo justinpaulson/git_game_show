@@ -24,6 +24,19 @@ gem install git_game_show
 
 This will install the `git-game-show` command globally on your system.
 
+If you encounter permission issues or the command is not found:
+
+```bash
+# Fix permissions if needed
+chmod +x $(gem which git_game_show | sed 's/lib\/git_game_show.rb/bin\/git-game-show/')
+
+# For rbenv users
+rbenv rehash
+
+# For asdf users
+asdf reshim ruby
+```
+
 ### Option 2: Manual Installation
 
 ```bash

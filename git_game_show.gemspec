@@ -23,6 +23,9 @@ Gem::Specification.new do |spec|
   spec.bindir        = "bin"
   spec.executables   = ["git-game-show"]
   spec.require_paths = ["lib"]
+  
+  # Ensure the executable has proper permissions
+  File.chmod(0755, 'bin/git-game-show') if File.exist?('bin/git-game-show')
 
   # Dependencies
   spec.add_dependency "thor", "~> 1.2"

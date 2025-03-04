@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2] - 2025-03-04
+
+### Fixed
+- Added post-installation hook that automatically sets executable permissions
+- Added automatic environment rehashing for rbenv and asdf users
+- Improved installation experience with helpful messages
+
 ## [0.1.1] - 2025-03-04
 
 ### Fixed

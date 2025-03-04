@@ -42,4 +42,20 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "rspec", "~> 3.12"
   spec.add_development_dependency "rubocop", "~> 1.50"
+  
+  # Add post-install message with instructions
+  spec.post_install_message = <<-MESSAGE
+=======================================
+Thank you for installing Git Game Show!
+
+If the executable is not available, run:
+  chmod +x $(gem which git_game_show | sed 's/lib\\/git_game_show.rb/bin\\/git-game-show/')
+
+For version managers:
+  rbenv users: rbenv rehash
+  asdf users:  asdf reshim ruby
+=======================================
+  MESSAGE
+  
+  spec.metadata["rubygems_mfa_required"] = "true"
 end

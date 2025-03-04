@@ -7,16 +7,23 @@ module GitGameShow
     desc 'version', 'Display Git Game Show version'
     def version
       puts "Git Game Show version #{GitGameShow::VERSION}"
+      
+      # Check for updates if the Updater class exists
+      GitGameShow::Updater.check_for_updates if defined?(GitGameShow::Updater)
     end
 
     desc '', 'Show welcome screen'
     def welcome
       display_welcome_screen
+      
+      # Check for updates if the Updater class exists
+      GitGameShow::Updater.check_for_updates if defined?(GitGameShow::Updater)
 
       prompt = TTY::Prompt.new
       choice = prompt.select("What would you like to do?", [
         {name: "Host a new game", value: :host},
         {name: "Join a game", value: :join},
+        {name: "Check for updates", value: :update},
         {name: "Exit", value: :exit}
       ])
 
@@ -25,6 +32,28 @@ module GitGameShow
         prompt_for_host_options
       when :join
         prompt_for_join_options
+      when :update
+        if defined?(GitGameShow::Updater)
+          # Force check for updates
+          current_version = GitGameShow::VERSION
+          puts "Current version: #{current_version}"
+          puts "Checking for updates..."
+          
+          latest_version = GitGameShow::Updater.send(:fetch_latest_version)
+          if latest_version.nil?
+            puts "Unable to connect to RubyGems.org. Please check your internet connection."
+          elsif GitGameShow::Updater.send(:newer_version_available?, current_version, latest_version)
+            GitGameShow::Updater.send(:display_update_prompt, current_version, latest_version)
+          else
+            puts "✓ You already have the latest version (#{current_version})!".colorize(:green)
+          end
+          
+          # Return to welcome screen after checking
+          welcome
+        else
+          puts "Update feature not available. Please update manually with 'gem update git_game_show'."
+          welcome
+        end
       when :exit
         puts "Thanks for playing Git Game Show!"
         exit(0)
@@ -399,7 +428,13 @@ module GitGameShow
         # Generate a secure join link with embedded password
         # If we have a ngrok tunnel, use the ngrok port, otherwise use the original port
         port_to_use = defined?(ngrok_port) ? ngrok_port : options[:port]
-        secure_link = "gitgame://#{ip}:#{port_to_use}/#{URI.encode_www_form_component(password)}"
+        
+        # Include protocol information in the secure link to help client determine ws:// vs wss://
+        # For ngrok URLs, add a flag to indicate secure WebSocket is needed
+        is_ngrok = ip.include?('ngrok.io') || ip.include?('ngrok-free.app') || ip.include?('ngrok.app')
+        protocol_flag = is_ngrok ? "secure=" : ""
+        
+        secure_link = "gitgame://#{ip}:#{port_to_use}/#{URI.encode_www_form_component(password)}?#{protocol_flag}"
 
         # Start the server with the improved UI and pass the join link
         server.start_with_ui(secure_link)
@@ -424,11 +459,15 @@ module GitGameShow
           host = uri.host
           port = uri.port || GitGameShow::DEFAULT_CONFIG[:port]
           password = URI.decode_www_form_component(uri.path.sub('/', ''))
+          
+          # Check if this is a secure (ngrok) connection from query params
+          is_secure = !uri.query.nil? && uri.query.include?('secure=')
         else
           # Legacy format - assume it's host:port
           host, port = secure_link.split(':')
           port ||= GitGameShow::DEFAULT_CONFIG[:port]
           password = options[:password]
+          is_secure = false
 
           # If no password provided in legacy format, ask for it
           unless password
@@ -450,7 +489,8 @@ module GitGameShow
           host: host,
           port: port.to_i,
           password: password,
-          name: name
+          name: name,
+          secure: is_secure
         )
 
         puts "=== Git Game Show Client ===".colorize(:green)

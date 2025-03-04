@@ -4,13 +4,14 @@ require 'timeout'
 
 module GitGameShow
   class PlayerClient
-    attr_reader :host, :port, :password, :name
+    attr_reader :host, :port, :password, :name, :secure
     
-    def initialize(host:, port:, password:, name:)
+    def initialize(host:, port:, password:, name:, secure: false)
       @host = host
       @port = port
       @password = password
       @name = name
+      @secure = secure
       @ws = nil
       @prompt = TTY::Prompt.new
       @players = []
@@ -21,7 +22,17 @@ module GitGameShow
     def connect
       begin
         client = self # Store reference to the client instance
-        @ws = WebSocket::Client::Simple.connect("ws://#{host}:#{port}")
+        
+        # Support both ws:// and wss:// protocols (needed for ngrok)
+        # Use wss:// if secure flag is set or if host contains ngrok domains
+        protocol = if @secure || host.include?('ngrok.io') || host.include?('ngrok-free.app') || host.include?('ngrok.app')
+          puts "Using secure WebSocket connection (wss://)".colorize(:cyan)
+          'wss'
+        else
+          'ws'
+        end
+        
+        @ws = WebSocket::Client::Simple.connect("#{protocol}://#{host}:#{port}")
         
         @ws.on :open do
           puts "Connected to server".colorize(:green)

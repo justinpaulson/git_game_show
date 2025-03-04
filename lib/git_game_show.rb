@@ -12,6 +12,7 @@ require 'uri'
 require 'clipboard'
 require 'readline'
 require 'timeout'
+require 'net/http'
 
 # Define module and constants first before loading any other files
 module GitGameShow

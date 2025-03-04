@@ -2,4 +2,22 @@
 
 require "git_game_show"
 
+# Skip auto-update check when running explicit commands
+# Only check when running without arguments or with --version
+if ARGV.empty? || ARGV.include?('--version') || ARGV.include?('-v')
+  begin
+    # Load the updater if available
+    updater_path = File.join(File.dirname(__FILE__), "../lib/git_game_show/updater.rb")
+    require updater_path if File.exist?(updater_path)
+
+    # Auto-check for updates (only when running the welcome screen)
+    if defined?(GitGameShow::Updater) && ARGV.empty?
+      GitGameShow::Updater.check_for_updates
+    end
+  rescue => e
+    # Silent fail on update check
+  end
+end
+
+# Start the CLI
 GitGameShow::CLI.start(ARGV)

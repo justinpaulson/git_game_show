@@ -61,14 +61,14 @@ module GitGameShow
         # Clear the terminal for better visibility
         puts "\n\n"
 
-        puts "╭―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――╮".colorize(:cyan)
-        puts "│           UPDATE AVAILABLE FOR GIT GAME SHOW                  │".colorize(:cyan)
-        puts "├―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――┤".colorize(:cyan)
-        puts "│                                                               │".colorize(:cyan)
-        puts "│  Current version: #{current_version.ljust(44)}│".colorize(:cyan)
-        puts "│  Latest version:  #{latest_version.ljust(44)}│".colorize(:cyan)
-        puts "│                                                               │".colorize(:cyan)
-        puts "╰―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――╯".colorize(:cyan)
+        puts ("╭" + "─" * 60 + "╮").colorize(:light_blue)
+        puts "│#{"Update Available for Git Game Show!".center(60)}│".colorize(:light_blue)
+        puts ("├" + "─" * 60 + "┤").colorize(:light_blue)
+        puts "│".colorize(:light_blue) + " " * 60 + "│".colorize(:light_blue)
+        puts "│".colorize(:light_blue) + "Current version: #{current_version}".center(60) + "│".colorize(:light_blue)
+        puts "│".colorize(:light_blue) + "Latest version:  #{latest_version}".center(60) + "│".colorize(:light_blue)
+        puts "│".colorize(:light_blue) + " " * 60 + "│".colorize(:light_blue)
+        puts ("╰" + "─" * 60 + "╯").colorize(:light_blue)
         puts "\n"
 
         update_now = prompt.yes?("Would you like to update now?")

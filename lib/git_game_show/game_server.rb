@@ -426,10 +426,10 @@ module GitGameShow
           # For regular quizzes, calculate points immediately
           correct = answer == current_question[:correct_answer]
           points = 0
-          
+
           if correct
             points = 10 # Base points for correct answer
-            
+
             # Bonus points for fast answers
             if time_taken < 5
               points += 5
@@ -476,7 +476,7 @@ module GitGameShow
         correct_answer: question[:correct_answer],
         points: points # Include points in the feedback
       }
-      
+
       # For ordering quizzes, we can't determine correctness immediately
       # Instead we'll indicate that scoring will be calculated after timeout
       if question[:question_type] == 'ordering'
@@ -505,7 +505,7 @@ module GitGameShow
       return if @question_already_evaluated
 
       @question_already_evaluated = true
-      
+
       # Safety check - make sure we have a current question
       begin
         current_question = @round_questions[@current_question_index]
@@ -516,7 +516,7 @@ module GitGameShow
       end
 
       results = {}
-      
+
       begin
         # For ordering quizzes or other special types, use the mini-game's evaluation method
         if current_question[:question_type] == 'ordering'
@@ -524,13 +524,13 @@ module GitGameShow
           mini_game_answers = {}
           @player_answers.each do |player_name, answer_data|
             next unless player_name && answer_data # Skip nil entries
-            
+
             mini_game_answers[player_name] = {
               answer: answer_data[:answer],
               time_taken: answer_data[:time_taken] || 20
             }
           end
-          
+
           # Call the mini-game's evaluate_answers method with error handling
           begin
             results = @current_mini_game.evaluate_answers(current_question, mini_game_answers) || {}
@@ -540,7 +540,7 @@ module GitGameShow
             results = {}
             @player_answers.each do |player_name, answer_data|
               next unless player_name
-              
+
               results[player_name] = {
                 answer: answer_data[:answer] || [],
                 correct: false,
@@ -554,7 +554,7 @@ module GitGameShow
           results = {}
           @player_answers.each do |player_name, answer_data|
             next unless player_name && answer_data # Skip nil entries
-            
+
             results[player_name] = {
               answer: answer_data[:answer] || "No answer",
               correct: answer_data[:correct] || false,
@@ -570,7 +570,7 @@ module GitGameShow
           results[player_name][:correct] = !!result[:correct] # Convert to boolean
           results[player_name][:points] = result[:points] || 0
         end
-        
+
         # Update scores
         results.each do |player, result|
           @scores[player] = (@scores[player] || 0) + (result[:points] || 0)
@@ -591,7 +591,7 @@ module GitGameShow
             partial_score: result[:partial_score] || ""
           }
         end
-        
+
         # Sort scores safely
         safe_scores = {}
         begin
@@ -600,7 +600,7 @@ module GitGameShow
           log_message("Error sorting scores: #{e.message}", :red)
           safe_scores = @scores.dup # Use unsorted if sorting fails
         end
-        
+
         # For ordering questions, format the correct_answer as a list with numbers
         formatted_correct_answer = current_question[:correct_answer] || []
         if current_question[:question_type] == 'ordering'
@@ -608,7 +608,7 @@ module GitGameShow
             "#{idx + 1}. #{item}" # Add numbers for easier reading
           end
         end
-        
+
         broadcast_message({
           type: MessageType::ROUND_RESULT,
           question: current_question,
@@ -623,7 +623,7 @@ module GitGameShow
       # Log current scores for the host - with error handling
       begin
         log_message("Current scores:", :cyan)
-        
+
         # Safety check for scores
         if @scores.nil? || @scores.empty?
           log_message("No scores available", :yellow)
@@ -635,13 +635,13 @@ module GitGameShow
             log_message("Error sorting scores for display: #{e.message}", :red)
             sorted_scores = @scores.to_a
           end
-          
+
           # Display each score with error handling
           sorted_scores.each do |player_entry|
             # Extract player and score safely
             player = player_entry[0].to_s
             score = player_entry[1] || 0
-            
+
             # Truncate player names if too long
             truncated_name = player.length > 15 ? "#{player[0...12]}..." : player
             log_message("#{truncated_name}: #{score} points", :light_blue)
@@ -855,7 +855,7 @@ module GitGameShow
             safe_scores[player.to_s] = score.to_i
           end
         end
-        
+
         # Sort scores safely
         sorted_scores = {}
         begin
@@ -864,7 +864,7 @@ module GitGameShow
           log_message("Error sorting scores for scoreboard: #{e.message}", :red)
           sorted_scores = safe_scores  # Use unsorted if sorting fails
         end
-        
+
         broadcast_message({
           type: MessageType::SCOREBOARD,
           scores: sorted_scores
@@ -879,7 +879,7 @@ module GitGameShow
 
       # Initialize winner variable outside the begin block so it's visible throughout the method
       winner = nil
-      
+
       # Wrap the main logic in a begin/rescue block
       begin
         # Safety check - make sure we have scores and they're not nil
@@ -908,7 +908,7 @@ module GitGameShow
           next unless player && player != ""
           safe_scores[player] = score || 0
         end
-        
+
         # Determine the winner with safety checks
         begin
           winner = safe_scores.max_by { |_, score| score || 0 }
@@ -1000,7 +1000,7 @@ module GitGameShow
       begin
         # Safety check - make sure we have a main_width value
         main_width = @main_width || 80
-        
+
         # Use log messages instead of clearing screen
         divider = "=" * (main_width - 5)
         log_message(divider, :yellow)
@@ -1036,7 +1036,7 @@ module GitGameShow
         rescue => e
           log_message("Error copying scores: #{e.message}", :red)
         end
-        
+
         # Safety check for scores
         if safe_scores.empty?
           log_message("No scores available to display", :yellow)
@@ -1060,19 +1060,19 @@ module GitGameShow
         end
 
         max_to_show = 10
-        
+
         # Show limited entries in console with extra safety checks
         begin
           # Ensure we don't try to take more entries than exist
           entries_to_show = [sorted_scores.size, max_to_show].min
-          
+
           sorted_scores.take(entries_to_show).each_with_index do |score_entry, index|
             # Extra safety check for each entry
             next unless score_entry && score_entry.is_a?(Array) && score_entry.size >= 2
-            
+
             name = score_entry[0]
             score = score_entry[1]
-            
+
             # Safely handle name and score
             player_name = name.to_s
             player_score = score.to_i
@@ -1106,7 +1106,7 @@ module GitGameShow
           sorted_scores.each_with_index do |score_entry, index|
             # Skip invalid entries
             next unless score_entry && score_entry.is_a?(Array) && score_entry.size >= 2
-            
+
             # Use safe values
             player_name = score_entry[0].to_s
             player_score = score_entry[1].to_i
@@ -1152,7 +1152,7 @@ module GitGameShow
           log_message("Error: Invalid winner data for leaderboard file", :red)
           return nil
         end
-        
+
         if !leaderboard_entries || !leaderboard_entries.is_a?(Array) || leaderboard_entries.empty?
           log_message("Error: Invalid entries data for leaderboard file", :red)
           return nil
@@ -1266,7 +1266,7 @@ module GitGameShow
 
     def broadcast_message(message, exclude: nil)
       return if message.nil?
-      
+
       begin
         # Convert message to JSON safely
         json_message = nil
@@ -1274,7 +1274,7 @@ module GitGameShow
           json_message = message.to_json
         rescue => e
           log_message("Error converting message to JSON: #{e.message}", :red)
-          
+
           # Try to simplify the message to make it JSON-compatible
           simplified_message = {
             type: message[:type] || "unknown",
@@ -1282,17 +1282,17 @@ module GitGameShow
           }
           json_message = simplified_message.to_json
         end
-        
+
         return unless json_message
-        
+
         # Send to each player with error handling
         @players.each do |player_name, ws|
           # Skip excluded player if specified
           next if exclude && player_name == exclude
-          
+
           # Skip nil websockets
           next unless ws
-          
+
           # Send with error handling for each individual player
           begin
             ws.send(json_message)
@@ -1558,7 +1558,7 @@ module GitGameShow
         log_message("Only one mini-game type available: #{selected_game.name}", :light_black)
         return selected_game
       end
-      
+
       # If we have no more available mini-games, reset the cycle
       if @available_mini_games.empty?
         # Handle the case where we might have only one game left after excluding the last used
@@ -1591,9 +1591,9 @@ module GitGameShow
     def load_mini_games
       # Enable all mini-games
       [
-        # GitGameShow::AuthorQuiz,
-        # GitGameShow::CommitMessageQuiz,
-        # GitGameShow::CommitMessageCompletion,
+        GitGameShow::AuthorQuiz,
+        GitGameShow::CommitMessageQuiz,
+        GitGameShow::CommitMessageCompletion,
         GitGameShow::DateOrderingQuiz
       ]
     end

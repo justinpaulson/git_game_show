@@ -523,6 +523,7 @@ module GitGameShow
 
     def display_game_logo
       clear_screen
+      puts ""
       puts (" ██████╗ ██╗████████╗".colorize(:red) + "     ██████╗  █████╗ ███╗   ███╗███████╗".colorize(:green)).center(110)
       puts ("██╔════╝ ██║╚══██╔══╝".colorize(:red) + "    ██╔════╝ ██╔══██╗████╗ ████║██╔════╝".colorize(:green)).center(110)
       puts ("██║  ███╗██║   ██║   ".colorize(:red) + "    ██║  ███╗███████║██╔████╔██║█████╗  ".colorize(:green)).center(110)

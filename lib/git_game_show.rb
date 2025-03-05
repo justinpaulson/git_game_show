@@ -17,16 +17,16 @@ require 'net/http'
 # Define module and constants first before loading any other files
 module GitGameShow
   # VERSION is defined in version.rb
-  
+
   # Default configuration
   DEFAULT_CONFIG = {
-    port: 3030,
+    internal_port: 80,
     rounds: 3,
     question_timeout: 30, # seconds
     question_display_time: 5, # seconds to show results before next question
     transition_delay: 5 # seconds between rounds
   }.freeze
-  
+
   # Message types for WebSocket communication
   module MessageType
     JOIN_REQUEST = 'join_request'

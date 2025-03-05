@@ -111,7 +111,7 @@ module GitGameShow
 
       link_box_width = [@join_link.length + 6, @main_width - 10].min
       start_x = (@main_width - link_box_width) / 2
-      start_y = 13
+      start_y = 8
 
       print @cursor.move_to(start_x, start_y)
       print "┌" + "─" * (link_box_width - 2) + "┐"

@@ -7,7 +7,7 @@ module GitGameShow
     desc 'version', 'Display Git Game Show version'
     def version
       puts "Git Game Show version #{GitGameShow::VERSION}"
-      
+
       # Check for updates if the Updater class exists
       GitGameShow::Updater.check_for_updates if defined?(GitGameShow::Updater)
     end
@@ -15,7 +15,7 @@ module GitGameShow
     desc '', 'Show welcome screen'
     def welcome
       display_welcome_screen
-      
+
       # Check for updates if the Updater class exists
       GitGameShow::Updater.check_for_updates if defined?(GitGameShow::Updater)
 
@@ -38,7 +38,7 @@ module GitGameShow
           current_version = GitGameShow::VERSION
           puts "Current version: #{current_version}"
           puts "Checking for updates..."
-          
+
           latest_version = GitGameShow::Updater.send(:fetch_latest_version)
           if latest_version.nil?
             puts "Unable to connect to RubyGems.org. Please check your internet connection."
@@ -47,7 +47,7 @@ module GitGameShow
           else
             puts "✓ You already have the latest version (#{current_version})!".colorize(:green)
           end
-          
+
           # Return to welcome screen after checking
           welcome
         else
@@ -61,7 +61,7 @@ module GitGameShow
     end
 
     desc 'host [OPTIONS]', 'Host a new game session'
-    method_option :port, type: :numeric, default: GitGameShow::DEFAULT_CONFIG[:port],
+    method_option :port, type: :numeric, default: GitGameShow::DEFAULT_CONFIG[:internal_port],
                   desc: 'Port to run the server on'
     method_option :password, type: :string,
                   desc: 'Optional password for players to join (auto-generated if not provided)'
@@ -100,7 +100,7 @@ module GitGameShow
         end
 
         # Clear the screen
-        clear_screen
+        display_ggs
 
         # Ask user which IP to use
         prompt = TTY::Prompt.new
@@ -123,6 +123,7 @@ module GitGameShow
         ip_choice = prompt.select("How should players connect to your game?", ip_choices)
 
         # Handle different connection options
+        external_port = options[:port] || GitGameShow::DEFAULT_CONFIG[:internal_port]
         case ip_choice[:type]
         when :local, :external
           ip = ip_choice[:ip]
@@ -130,7 +131,7 @@ module GitGameShow
           ip = prompt.ask("Enter your IP address or hostname:", required: true)
         when :tunnel
           # Clear the screen and show informative message about ngrok
-          clear_screen
+          display_ggs
           puts "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
           puts "┃ NGROK TUNNEL SETUP                                                           ┃"
           puts "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫"
@@ -267,7 +268,7 @@ module GitGameShow
             auth_needed = auth_check.include?("auth") || auth_check.include?("authtoken") || auth_check.include?("ERR") || auth_check.include?("error")
 
             if auth_needed
-              clear_screen
+              display_ggs
               puts "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
               puts "┃ NGROK AUTHORIZATION REQUIRED                                               ┃"
               puts "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫"
@@ -352,9 +353,7 @@ module GitGameShow
                     # Use the host with the ngrok-assigned port
                     ip = host
                     # Create a new port variable instead of modifying the frozen options hash
-                    ngrok_port = port.to_i
-                    # Log the port change
-                    puts "Ngrok assigned port: #{ngrok_port} (original port: #{options[:port]})"
+                    external_port = port.to_i
 
                     tunnel_url = public_url
 
@@ -363,12 +362,18 @@ module GitGameShow
                       system("pkill -f ngrok > /dev/null 2>&1 || taskkill /F /IM ngrok.exe > /dev/null 2>&1")
                     end
 
-                    clear_screen
+                    display_ggs
+
                     puts "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
                     puts "┃ TUNNEL ESTABLISHED SUCCESSFULLY!                                             ┃"
                     puts "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫"
                     puts "┃ • Your game is now accessible over the internet                              ┃"
-                    puts "┃ • The ngrok tunnel is running in the background                              ┃"
+                    puts "┃ • The ngrok tunnel is running in the background:                             ┃"
+                    puts "┃                                                                              ┃"
+                    puts "┃   ngrok ip:         #{ip.ljust(57)}┃"
+                    puts "┃   ngrok port:       #{external_port.to_s.ljust(57)}┃"
+                    puts "┃   ngrok public URL: #{public_url.ljust(57)}┃"
+                    puts "┃                                                                              ┃"
                     puts "┃ • DO NOT close the terminal window until your game is finished               ┃"
                     puts "┃ • The tunnel will automatically close when you exit the game                 ┃"
                     puts "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
@@ -386,7 +391,7 @@ module GitGameShow
             end
 
             unless tunnel_url
-              clear_screen
+              display_ggs
               puts "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
               puts "┃ TUNNEL SETUP FAILED                                                          ┃"
               puts "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫"
@@ -407,13 +412,13 @@ module GitGameShow
               ip = local_ip
             end
           rescue => e
-            clear_screen
+            display_ggs
             puts "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-            puts "┃ ERROR SETTING UP NGROK TUNNEL                                               ┃"
+            puts "┃ ERROR SETTING UP NGROK TUNNEL                                                ┃"
             puts "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫"
-            puts "┃ • An error occurred while trying to set up the ngrok tunnel                 ┃"
-            puts "┃ • This is likely an authentication issue with ngrok                         ┃"
-            puts "┃ • Falling back to local IP (players will only be able to join locally)      ┃"
+            puts "┃ • An error occurred while trying to set up the ngrok tunnel                  ┃"
+            puts "┃ • This is likely an authentication issue with ngrok                          ┃"
+            puts "┃ • Falling back to local IP (players will only be able to join locally)       ┃"
             puts "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
             puts ""
             puts "Error details: #{e.message}"
@@ -425,16 +430,18 @@ module GitGameShow
           end
         end
 
-        # Generate a secure join link with embedded password
-        # If we have a ngrok tunnel, use the ngrok port, otherwise use the original port
-        port_to_use = defined?(ngrok_port) ? ngrok_port : options[:port]
-        
-        # Include protocol information in the secure link to help client determine ws:// vs wss://
-        # For ngrok URLs, add a flag to indicate secure WebSocket is needed
-        is_ngrok = ip.include?('ngrok.io') || ip.include?('ngrok-free.app') || ip.include?('ngrok.app')
-        protocol_flag = is_ngrok ? "secure=" : ""
-        
-        secure_link = "gitgame://#{ip}:#{port_to_use}/#{URI.encode_www_form_component(password)}?#{protocol_flag}"
+        # Now ask for the port (after network setup is complete)
+        # Skip if ngrok assigned a port already
+        unless ip_choice[:type] == :tunnel
+          internal_port = prompt.ask("Which port would you like to use?",
+                            convert: :int,
+                            default: GitGameShow::DEFAULT_CONFIG[:internal_port])
+
+          # Update the server's port
+          server.instance_variable_set(:@port, internal_port)
+        end
+
+        secure_link = "gitgame://#{ip}:#{external_port}/#{URI.encode_www_form_component(password)}"
 
         # Start the server with the improved UI and pass the join link
         server.start_with_ui(secure_link)
@@ -457,15 +464,15 @@ module GitGameShow
         if secure_link.start_with?('gitgame://')
           uri = URI.parse(secure_link.sub('gitgame://', 'http://'))
           host = uri.host
-          port = uri.port || GitGameShow::DEFAULT_CONFIG[:port]
+          port = uri.port || GitGameShow::DEFAULT_CONFIG[:internal_port]
           password = URI.decode_www_form_component(uri.path.sub('/', ''))
-          
+
           # Check if this is a secure (ngrok) connection from query params
           is_secure = !uri.query.nil? && uri.query.include?('secure=')
         else
           # Legacy format - assume it's host:port
           host, port = secure_link.split(':')
-          port ||= GitGameShow::DEFAULT_CONFIG[:port]
+          port ||= GitGameShow::DEFAULT_CONFIG[:internal_port]
           password = options[:password]
           is_secure = false
 
@@ -508,9 +515,21 @@ module GitGameShow
 
     private
 
-    def display_welcome_screen
+    def display_ggs
       clear_screen
+      lines = [
+        " ██████╗ ".colorize(:red) + "  ██████╗ ".colorize(:green) + "  █████╗".colorize(:blue),
+        "██╔════╝ ".colorize(:red) + " ██╔════╝ ".colorize(:green) + " ██╔═══╝".colorize(:blue),
+        "██║  ███╗".colorize(:red) + " ██║  ███╗".colorize(:green) + " ███████╗".colorize(:blue),
+        "██║   ██║".colorize(:red) + " ██║   ██║".colorize(:green) + " ╚════██║".colorize(:blue),
+        "╚██████╔╝".colorize(:red) + " ╚██████╔╝".colorize(:green) + " ██████╔╝".colorize(:blue),
+        " ╚═════╝ ".colorize(:red) + "  ╚═════╝ ".colorize(:green) + " ╚═════╝ ".colorize(:blue),
+      ]
+      lines.each { |line| puts line }
+    end
 
+    def display_game_logo
+      clear_screen
       puts " ██████╗ ██╗████████╗".colorize(:red) + "     ██████╗  █████╗ ███╗   ███╗███████╗".colorize(:green)
       puts "██╔════╝ ██║╚══██╔══╝".colorize(:red) + "    ██╔════╝ ██╔══██╗████╗ ████║██╔════╝".colorize(:green)
       puts "██║  ███╗██║   ██║   ".colorize(:red) + "    ██║  ███╗███████║██╔████╔██║█████╗  ".colorize(:green)
@@ -524,31 +543,32 @@ module GitGameShow
       puts "╚════██║██╔══██║██║   ██║██║███╗██║".colorize(:blue)
       puts "██████╔╝██║  ██║╚██████╔╝╚███╔███╔╝".colorize(:blue)
       puts "╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ ".colorize(:blue)
+    end
+
+    def display_welcome_screen
+      display_game_logo
 
       puts "\nWelcome to Git Game Show version #{GitGameShow::VERSION}!".colorize(:light_blue)
       puts "Test your team's Git knowledge with fun trivia games.\n\n"
     end
 
-    def prompt_for_host_options
-      prompt = TTY::Prompt.new
+  def prompt_for_host_options
+    prompt = TTY::Prompt.new
 
-      repo_path = prompt.ask("Enter the path to the Git repository (leave empty for current directory):", default: '.')
-      rounds = prompt.ask("How many rounds would you like to play? (1-10)",
-                         convert: :int,
-                         default: GitGameShow::DEFAULT_CONFIG[:rounds]) do |q|
-        q.validate(/^([1-9]|10)$/, "Please enter a number between 1 and 10")
-      end
-      port = prompt.ask("Which port would you like to use?",
+    repo_path = prompt.ask("Enter the path to the Git repository (leave empty for current directory):", default: '.')
+    rounds = prompt.ask("How many rounds would you like to play? (1-10)",
                        convert: :int,
-                       default: GitGameShow::DEFAULT_CONFIG[:port])
-
-      # Call the host method with the provided options (password will be auto-generated)
-      invoke :host, [], {
-        repo_path: repo_path,
-        rounds: rounds,
-        port: port
-      }
+                       default: GitGameShow::DEFAULT_CONFIG[:rounds]) do |q|
+      q.validate(/^([1-9]|10)$/, "Please enter a number between 1 and 10")
     end
+
+    # Call the host method with the provided options (password will be auto-generated)
+    # Port will be asked after network setup
+    invoke :host, [], {
+      repo_path: repo_path,
+      rounds: rounds
+    }
+  end
 
     def prompt_for_join_options
       prompt = TTY::Prompt.new

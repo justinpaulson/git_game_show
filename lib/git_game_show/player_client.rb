@@ -5,7 +5,7 @@ require 'timeout'
 module GitGameShow
   class PlayerClient
     attr_reader :host, :port, :password, :name, :secure
-    
+
     def initialize(host:, port:, password:, name:, secure: false)
       @host = host
       @port = port
@@ -18,45 +18,46 @@ module GitGameShow
       @game_state = :lobby  # :lobby, :playing, :ended
       @current_timer_id = nil
     end
-    
+
     def connect
       begin
         client = self # Store reference to the client instance
-        
-        # Support both ws:// and wss:// protocols (needed for ngrok)
-        # Use wss:// if secure flag is set or if host contains ngrok domains
-        protocol = if @secure || host.include?('ngrok.io') || host.include?('ngrok-free.app') || host.include?('ngrok.app')
+
+        # Check if the connection should use a secure protocol
+        # For ngrok TCP tunnels, we should use regular ws:// since ngrok tcp doesn't provide SSL termination
+        # Only use wss:// if the secure flag is explicitly set (for configured HTTPS endpoints)
+        protocol = if @secure
           puts "Using secure WebSocket connection (wss://)".colorize(:cyan)
           'wss'
         else
           'ws'
         end
-        
+
         @ws = WebSocket::Client::Simple.connect("#{protocol}://#{host}:#{port}")
-        
+
         @ws.on :open do
           puts "Connected to server".colorize(:green)
           # Use the stored client reference
           client.send_join_request
         end
-        
+
         @ws.on :message do |msg|
           client.handle_message(msg)
         end
-        
+
         @ws.on :error do |e|
           puts "Error: #{e.message}".colorize(:red)
         end
-        
+
         @ws.on :close do |e|
           puts "Connection closed (#{e.code}: #{e.reason})".colorize(:yellow)
           exit(1)
         end
-        
+
         # Keep the client running
         loop do
           sleep(1)
-          
+
           # Check if connection is still alive
           if @ws.nil? || @ws.closed?
             puts "Connection lost. Exiting...".colorize(:red)
@@ -67,7 +68,7 @@ module GitGameShow
         puts "Failed to connect: #{e.message}".colorize(:red)
       end
     end
-    
+
     # Make these methods public so they can be called from the WebSocket callbacks
     def send_join_request
       send_message({
@@ -76,14 +77,14 @@ module GitGameShow
         password: password
       })
     end
-    
+
     # Make public for WebSocket callback
     def handle_message(msg)
       begin
         data = JSON.parse(msg.data)
-        
+
         # Remove debug print to reduce console noise
-        
+
         case data['type']
         when MessageType::JOIN_RESPONSE
           handle_join_response(data)
@@ -116,7 +117,7 @@ module GitGameShow
         puts "Error processing message: #{e.message}".colorize(:red)
       end
     end
-    
+
     def handle_join_response(data)
       if data['success']
         @players = data['players'] # Get the full player list from server
@@ -126,22 +127,22 @@ module GitGameShow
         exit(1)
       end
     end
-    
+
     def display_waiting_room
       clear_screen
-      
+
       # Draw header with fancy box
       terminal_width = `tput cols`.to_i rescue 80
       terminal_height = `tput lines`.to_i rescue 24
-      
+
       # Create title box
       puts "┏#{"━" * (terminal_width - 2)}┓".colorize(:green)
       puts "┃#{" GIT GAME SHOW - WAITING ROOM ".center(terminal_width - 2)}┃".colorize(:green)
       puts "┗#{"━" * (terminal_width - 2)}┛".colorize(:green)
-      
+
       # Left column width (2/3 of terminal) for main content
       left_width = (terminal_width * 0.65).to_i
-      
+
       # Display instructions and welcome information
       puts "\n"
       puts "  Welcome to Git Game Show!".colorize(:yellow)
@@ -155,41 +156,41 @@ module GitGameShow
       puts "\n"
       puts "  🔹 STATUS: Waiting for the host to start the game...".colorize(:light_yellow)
       puts "\n"
-      
+
       # Draw player section in a box
       player_box_width = terminal_width - 4
       puts "  ┏#{"━" * player_box_width}┓".colorize(:cyan)
       puts "  ┃#{" PLAYERS ".center(player_box_width)}┃".colorize(:cyan)
       puts "  ┗#{"━" * player_box_width}┛".colorize(:cyan)
-      
+
       # Display list of players in a nicer format
       if @players.empty?
         puts "  (No other players yet)".colorize(:light_black)
       else
         # Calculate number of columns based on terminal width and name lengths
         max_name_length = @players.map(&:length).max + 10 # Extra space for number and "(You)" text
-        
+
         # Add more spacing between players - increase padding from 4 to 10
         column_width = max_name_length + 12  # More generous spacing
         num_cols = [terminal_width / column_width, 3].min # Cap at 3 columns max
         num_cols = 1 if num_cols < 1
-        
+
         # Use fewer columns for better spacing
         if num_cols > 1 && @players.size > 6
           # If we have many players, prefer fewer columns with more space
           num_cols = [num_cols, 2].min
         end
-        
+
         # Split players into rows for multi-column display
         player_rows = @players.each_slice(((@players.size + num_cols - 1) / num_cols).ceil).to_a
-        
+
         puts "\n"
         player_rows.each do |row_players|
           row_str = "  "
           row_players.each_with_index do |player, idx|
             col_idx = player_rows.index { |rp| rp.include?(player) }
             player_num = col_idx * player_rows[0].length + idx + 1
-            
+
             # Apply different color for current player
             if player == @name
               row_str += "#{player_num}. #{player} (You)".colorize(:green).ljust(column_width)
@@ -202,30 +203,30 @@ module GitGameShow
           puts ""
         end
       end
-      
+
       puts "\n"
       puts "  When the game starts, you'll see questions appear automatically.".colorize(:light_black)
       puts "  Get ready to test your Git knowledge!".colorize(:light_yellow)
       puts "\n"
     end
-    
+
     def clear_screen
       # Reset cursor and clear entire screen
       print "\033[H\033[2J"  # Move to home position and clear screen
       print "\033[3J"        # Clear scrollback buffer
-      
+
       # Reserve bottom line for timer status
       term_height = `tput lines`.to_i rescue 24
-      
+
       # Move to bottom of screen and clear status line
       print "\e[#{term_height};1H"
       print "\e[K"
       print "\e[H"  # Move cursor back to home position
-      
+
       STDOUT.flush
     end
-    
-    
+
+
     # Helper method to print a countdown timer status in the window title
     # This doesn't interfere with the terminal content
     def update_title_timer(seconds)
@@ -234,7 +235,7 @@ module GitGameShow
       print "\033]0;Git Game Show - #{seconds} seconds remaining\007"
       STDOUT.flush
     end
-    
+
     # Super simple ordering implementation with minimal screen updates
     def handle_ordering_question(options, question_text = nil)
       # Create a copy of the options that we can modify
@@ -243,59 +244,59 @@ module GitGameShow
       selected_index = nil
       num_options = current_order.size
       question_text ||= "Put these commits in chronological order (oldest to newest)"
-      
+
       # Extract question data if available
       data = Thread.current[:question_data] || {}
       question_number = data['question_number']
       total_questions = data['total_questions']
-      
+
       # Draw the initial screen once
       # system('clear') || system('cls')
-      
+
       # Draw question header once
       if question_number && total_questions
         puts "\n   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓".colorize(:cyan)
         puts "   ┃#{"QUESTION #{question_number} of #{total_questions}".center(45)}┃".colorize(:cyan)
         puts "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛".colorize(:cyan)
       end
-      
+
       # Draw the main question text once
       puts "\n   #{question_text}".colorize(:light_blue)
       puts "   Put in order from oldest (1) to newest (#{num_options})".colorize(:light_blue)
-      
+
       # Draw instructions once
       puts "\n   INSTRUCTIONS:".colorize(:yellow)
       puts "   • Use ↑/↓ arrows to move cursor".colorize(:white)
       puts "   • Press ENTER to select/deselect an item to move".colorize(:white)
       puts "   • Selected items move with cursor when you press ↑/↓".colorize(:white)
       puts "   • Navigate to Submit and press ENTER when finished".colorize(:white)
-      
+
       # Draw the header for the list content once
       puts "\n   CURRENT ORDER:".colorize(:light_blue)
-      
+
       # Calculate where the list content starts on screen
       content_start_line = question_number ? 15 : 12
-      
+
       # Draw the list content (this will be redrawn repeatedly)
       draw_ordering_list(current_order, cursor_index, selected_index, content_start_line, num_options)
-      
+
       # Initialize variables
-      
+
       # Main interaction loop
       loop do
         # Read a single keypress
         char = read_char
-        
+
         # Clear any message on this line
         move_cursor_to(content_start_line + num_options + 2, 0)
         print "\r\033[K"
-        
+
         # Check if the timer has expired
         if @timer_expired
           # If timer expired, just return the current ordering
           return current_order
         end
-        
+
         # Now char is an integer (ASCII code)
         case char
         when 13, 10  # Enter key (CR or LF)
@@ -317,7 +318,7 @@ module GitGameShow
           # Move cursor up
           if selected_index == cursor_index && cursor_index > 0
             # Move the selected item up in the order
-            current_order[cursor_index], current_order[cursor_index - 1] = 
+            current_order[cursor_index], current_order[cursor_index - 1] =
               current_order[cursor_index - 1], current_order[cursor_index]
             cursor_index -= 1
             selected_index = cursor_index
@@ -328,7 +329,7 @@ module GitGameShow
         when 66, 106, 115  # Down arrow (66='B'), j (106), s (115)
           if selected_index == cursor_index && cursor_index < num_options - 1
             # Move the selected item down in the order
-            current_order[cursor_index], current_order[cursor_index + 1] = 
+            current_order[cursor_index], current_order[cursor_index + 1] =
               current_order[cursor_index + 1], current_order[cursor_index]
             cursor_index += 1
             selected_index = cursor_index
@@ -337,34 +338,34 @@ module GitGameShow
             cursor_index += 1
           end
         end
-        
+
         # Redraw just the list portion of the screen
         draw_ordering_list(current_order, cursor_index, selected_index, content_start_line, num_options)
       end
     end
-    
+
     # Helper method to draw just the list portion of the ordering UI
     def draw_ordering_list(items, cursor_index, selected_index, start_line, num_options)
       # Clear the line above the list (was used for debugging)
       debug_line = start_line - 1
       move_cursor_to(debug_line, 0)
       print "\r\033[K"  # Clear debug line
-      
+
       # Move cursor to the start position for the list
       move_cursor_to(start_line, 0)
-      
+
       # Clear all lines that will contain list items and the submit button
       (num_options + 2).times do |i|
         move_cursor_to(start_line + i, 0)
         print "\r\033[K"  # Clear current line without moving cursor
       end
-      
+
       # Draw each item with appropriate highlighting
       items.each_with_index do |item, idx|
         # Calculate the line for this item
         item_line = start_line + idx
         move_cursor_to(item_line, 0)
-        
+
         if selected_index == idx
           # Selected item (being moved)
           print "   → #{idx + 1}. #{item}".colorize(:light_green)
@@ -376,7 +377,7 @@ module GitGameShow
           print "     #{idx + 1}. #{item}".colorize(:white)
         end
       end
-      
+
       # Add the Submit option at the bottom
       move_cursor_to(start_line + num_options, 0)
       if cursor_index == num_options
@@ -384,27 +385,27 @@ module GitGameShow
       else
         print "     Submit Answer".colorize(:white)
       end
-      
+
       # Move cursor after the list
       move_cursor_to(start_line + num_options + 1, 0)
-      
+
       # Ensure output is visible
       STDOUT.flush
     end
-    
+
     # Helper to position cursor at a specific row/column
     def move_cursor_to(row, col)
       print "\033[#{row};#{col}H"
     end
-    
+
     # Simplified key input reader that uses numbers for arrow keys
     def read_char
       begin
         system("stty raw -echo")
-        
+
         # Read a character
         c = STDIN.getc
-        
+
         # Special handling for escape sequences
         if c == "\e"
           # Could be an arrow key - read more
@@ -434,14 +435,14 @@ module GitGameShow
             return 27  # ESC key
           end
         end
-        
+
         # Just return the ASCII value for the key
         return c.ord
       ensure
         system("stty -raw echo")
       end
     end
-    
+
     # Non-blocking key input reader that supports timeouts
     def read_char_with_timeout
       begin
@@ -449,10 +450,10 @@ module GitGameShow
         if IO.select([STDIN], [], [], 0.1)
           # Read a character
           c = STDIN.getc
-          
+
           # Handle nil case (EOF)
           return nil if c.nil?
-          
+
           # Special handling for escape sequences
           if c == "\e"
             # Could be an arrow key - read more
@@ -482,11 +483,11 @@ module GitGameShow
               return 27  # ESC key
             end
           end
-          
+
           # Just return the ASCII value for the key
           return c.ord
         end
-        
+
         # No input available - return nil for timeout
         return nil
       rescue => e
@@ -494,17 +495,17 @@ module GitGameShow
         return nil
       end
     end
-    
+
     # Helper method to display countdown using a status bar at the bottom of the screen
     def update_countdown_display(seconds, original_seconds)
       # Get terminal dimensions
       term_height = `tput lines`.to_i rescue 24
-      
+
       # Calculate a simple progress bar
       total_width = 30
       progress_width = ((seconds.to_f / original_seconds) * total_width).to_i
       remaining_width = total_width - progress_width
-      
+
       # Choose color based on time remaining
       color = if seconds <= 5
                 :red
@@ -513,57 +514,57 @@ module GitGameShow
               else
                 :green
               end
-      
+
       # Create status bar with progress indicator
       bar = "[#{"█" * progress_width}#{" " * remaining_width}]"
       status_text = " ⏱️  Time remaining: #{seconds.to_s.rjust(2)} seconds ".colorize(color) + bar
-      
+
       # Save cursor position
       print "\e7"
-      
+
       # Move to bottom of screen (status line)
       print "\e[#{term_height};1H"
-      
+
       # Clear the line
       print "\e[K"
-      
+
       # Print status bar at bottom of screen
       print status_text
-      
+
       # Restore cursor position
       print "\e8"
       STDOUT.flush
     end
-    
+
     def handle_game_start(data)
       @game_state = :playing
       @players = data['players']
       @total_rounds = data['rounds']
-      
+
       clear_screen
-      
+
       # Display a fun "Game Starting" animation
       puts "\n\n"
       puts "   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓".colorize(:green)
       puts "   ┃             GAME STARTING...              ┃".colorize(:green)
       puts "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛".colorize(:green)
       puts "\n\n"
-      
+
       puts "   Total rounds: #{@total_rounds}".colorize(:cyan)
       puts "   Players: #{@players.join(', ')}".colorize(:cyan)
       puts "\n\n"
       puts "   Get ready for the first round!".colorize(:yellow)
       puts "\n\n"
     end
-    
+
     def handle_player_update(data)
       # Update the players list
       @players = data['players']
-      
+
       if @game_state == :lobby
         # If we're in the lobby, refresh the waiting room UI with updated player list
         display_waiting_room
-        
+
         # Show notification at the bottom
         if data['type'] == 'player_joined'
           puts "\n  🟢 #{data['name']} has joined the game".colorize(:green)
@@ -573,51 +574,51 @@ module GitGameShow
       else
         # During gameplay, just show a notification without disrupting the game UI
         terminal_width = `tput cols`.to_i rescue 80
-        
+
         # Create a notification box that won't interfere with ongoing gameplay
         puts "\n┏#{"━" * (terminal_width - 2)}┓".colorize(:cyan)
-        
+
         if data['type'] == 'player_joined'
           puts "┃#{" 🟢 #{data['name']} has joined the game ".center(terminal_width - 2)}┃".colorize(:green)
         else
           puts "┃#{" 🔴 #{data['name']} has left the game ".center(terminal_width - 2)}┃".colorize(:yellow)
         end
-        
+
         # Don't show all players during gameplay - can be too disruptive
         # Just show the total count
         puts "┃#{" Total players: #{data['players'].size} ".center(terminal_width - 2)}┃".colorize(:cyan)
         puts "┗#{"━" * (terminal_width - 2)}┛".colorize(:cyan)
       end
     end
-    
+
     def handle_round_start(data)
       clear_screen
-      
+
       # Draw a fancy round header
       round_num = data['round']
       total_rounds = data['total_rounds']
       mini_game = data['mini_game']
       description = data['description']
-      
+
       puts "\n\n"
-      
+
       # Box is drawn with exactly 45 "━" characters for the top and bottom borders
       # The top and bottom including borders are 48 characters wide
       box_top    = "   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
       box_bottom = "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-      
+
       # Get the text to center
       round_text = "ROUND #{round_num} of #{total_rounds}"
-      
+
       # Find exact box width by measuring the top border
       box_width = box_top.length # Should be 48 with Unicode characters
-      
+
       # The inner width is the box width minus the borders
       inner_width = box_width - ("   ┃".length + "┃".length)
-      
+
       # Simply use Ruby's built-in center method for reliable centering
       box_middle = "   ┃" + round_text.center(inner_width) + "┃"
-      
+
       # Output the box
       puts box_top.colorize(:green)
       puts box_middle.colorize(:green)
@@ -626,7 +627,7 @@ module GitGameShow
       puts "   Mini-game: #{mini_game}".colorize(:cyan)
       puts "   #{description}".colorize(:light_blue)
       puts "\n"
-      
+
       # Count down to the start - don't sleep here as we're waiting for the server
       # to send us the questions after a fixed delay
       puts "   Get ready for the first question...".colorize(:yellow)
@@ -634,99 +635,99 @@ module GitGameShow
       puts "   The host is controlling the timing of all questions.".colorize(:light_blue)
       puts "\n\n"
     end
-    
+
     def handle_question(data)
       # Invalidate any previous timer
       @current_timer_id = SecureRandom.uuid
-      
+
       # Clear the screen completely
       clear_screen
-      
+
       question_num = data['question_number']
       total_questions = data['total_questions']
       question = data['question']
       timeout = data['timeout']
-      
+
       # Store question data in thread-local storage for access in other methods
       Thread.current[:question_data] = data
-      
+
       # No need to reserve space for timer - it will be at the bottom of the screen
-      
+
       # Display question header
       puts "\n"
-      
+
       # Draw a simple box for the question header
       box_top    = "   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
       box_bottom = "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
       question_text = "QUESTION #{question_num} of #{total_questions}"
       inner_width = box_top.length - ("   ┃".length + "┃".length)
       box_middle = "   ┃" + question_text.center(inner_width) + "┃"
-      
+
       # Output the question box
       puts box_top.colorize(:cyan)
       puts box_middle.colorize(:cyan)
       puts box_bottom.colorize(:cyan)
       puts "\n"
-      
+
       # Display question
       puts "   #{question}".colorize(:light_blue)
-      
+
       # Display commit info if available
       if data['commit_info']
         puts "\n   Commit: #{data['commit_info']}".colorize(:yellow)
       end
       puts "\n"
-      
+
       # Create a unique timer ID for this question
       timer_id = SecureRandom.uuid
       @current_timer_id = timer_id
       start_time = Time.now
       end_time = start_time + timeout
-      
+
       # Static deadline info
       puts "   Deadline: #{end_time.strftime('%I:%M:%S %p')}".colorize(:light_blue)
       puts "\n"
-      
+
       # Initialize remaining time for scoring
       @time_remaining = timeout
-      
+
       # Update the timer display immediately
       update_countdown_display(timeout, timeout)
-      
+
       # Variable to track if the timer has expired
       @timer_expired = false
-      
+
       # Start countdown in a background thread with new approach
       countdown_thread = Thread.new do
         begin
           remaining = timeout
-          
+
           while remaining > 0 && @current_timer_id == timer_id
             # Update both window title and fixed position display
             update_title_timer(remaining)
             update_countdown_display(remaining, timeout)
-            
+
             # Sound alert when time is almost up (< 5 seconds)
             if remaining < 5 && remaining > 0
               print "\a" if remaining % 2 == 0 # Beep on even seconds
             end
-            
+
             # Store time for scoring
             @time_remaining = remaining
-            
+
             # Wait one second
             sleep 1
             remaining -= 1
           end
-          
+
           # Final update when timer reaches zero
           if @current_timer_id == timer_id
             update_countdown_display(0, timeout)
-            
+
             # IMPORTANT: Send a timeout answer when time expires
             # without waiting for user input
             @timer_expired = true
-            
+
             # Clear the screen to break out of any prompt/UI state
             clear_screen
 
@@ -753,7 +754,7 @@ module GitGameShow
           # Silent failure for robustness
         end
       end
-      
+
       # Handle different question types - but wrap in a separate thread
       # so that timeouts can interrupt the UI
       input_thread = Thread.new do
@@ -786,7 +787,7 @@ module GitGameShow
           end
         end
       end
-      
+
       # Wait for input but with timeout
       answer = nil
       begin
@@ -798,7 +799,7 @@ module GitGameShow
         # If timeout occurs during join, kill the thread
         input_thread.kill if input_thread.alive?
       end
-      
+
       # Only send user answer if timer hasn't expired
       unless @timer_expired
         # Send answer back to server
@@ -808,47 +809,47 @@ module GitGameShow
           answer: answer,
           question_id: data['question_id']
         })
-        
+
         puts "\n   Answer submitted! Waiting for feedback...".colorize(:green)
       end
-      
+
       # Stop the timer by invalidating its ID and terminating the thread
       @current_timer_id = SecureRandom.uuid  # Change timer ID to signal thread to stop
       countdown_thread.kill if countdown_thread.alive? # Force kill the thread
-      
+
       # Reset window title
       print "\033]0;Git Game Show\007"
-      
+
       # Clear the timer status line at bottom
       term_height = `tput lines`.to_i rescue 24
       print "\e7"              # Save cursor position
       print "\e[#{term_height};1H"  # Move to bottom line
       print "\e[K"             # Clear line
       print "\e8"              # Restore cursor position
-      
+
       # The server will send ANSWER_FEEDBACK message right away, then we'll see feedback
     end
-    
+
     # Handle immediate feedback after submitting an answer
     def handle_answer_feedback(data)
       # Invalidate any running timer and reset window title
       @current_timer_id = SecureRandom.uuid
       print "\033]0;Git Game Show\007"  # Reset window title
-      
+
       # Clear the timer status line at bottom
       term_height = `tput lines`.to_i rescue 24
       print "\e7"              # Save cursor position
       print "\e[#{term_height};1H"  # Move to bottom line
       print "\e[K"             # Clear line
       print "\e8"              # Restore cursor position
-      
+
       # Don't clear screen, just display the feedback under the question
       # This keeps the context of the question while showing the result
-      
+
       # Add a visual separator
       puts "\n   #{"─" * 40}".colorize(:light_black)
       puts "\n"
-      
+
       # Show immediate feedback
       if data['answer'] == "TIMEOUT"
         # Special handling for timeouts
@@ -859,7 +860,7 @@ module GitGameShow
         # Correct answer
         points_text = data['points'] > 0 ? " (+#{data['points']} points)" : ""
         puts "   ✅ CORRECT! Your answer was correct: #{data['answer']}#{points_text}".colorize(:green)
-        
+
         # Show bonus points details if applicable
         if data['points'] > 10 # More than base points
           bonus = data['points'] - 10
@@ -870,7 +871,7 @@ module GitGameShow
         puts "   ❌ INCORRECT! The correct answer was: #{data['correct_answer']}".colorize(:red)
         puts "   You answered: #{data['answer']} (0 points)".colorize(:yellow)
       end
-      
+
       puts "\n   Waiting for the round to complete. Please wait for the next question...".colorize(:light_blue)
     end
 
@@ -879,43 +880,43 @@ module GitGameShow
       # Invalidate any running timer and reset window title
       @current_timer_id = SecureRandom.uuid
       print "\033]0;Git Game Show - Round Results\007"  # Reset window title with context
-      
+
       # Start with a clean screen
       clear_screen
-      
+
       puts "\n"
-      
+
       # Box is drawn with exactly 45 "━" characters for the top and bottom borders
       # The top and bottom including borders are 48 characters wide
       box_top    = "   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
       box_bottom = "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-      
+
       # Get the text to center
       result_text = "ROUND RESULTS"
-      
+
       # Find exact box width by measuring the top border
       box_width = box_top.length # Should be 48 with Unicode characters
-      
+
       # The inner width is the box width minus 2 characters for the borders
       inner_width = box_width - ("   ┃".length + "┃".length)
-      
+
       # Simply use Ruby's built-in center method for reliable centering
       box_middle = "   ┃" + result_text.center(inner_width) + "┃"
-      
+
       # Output the box
       puts box_top.colorize(:cyan)
       puts box_middle.colorize(:cyan)
       puts box_bottom.colorize(:cyan)
       puts "\n"
-      
+
       # Show question again
       puts "   Question: #{data['question'][:question]}".colorize(:light_blue)
       puts "   Correct answer: #{data['correct_answer']}".colorize(:green)
-      
+
       puts "\n   All player results:".colorize(:cyan)
-      
+
       # Debug data temporarily removed
-      
+
       # Handle results based on structure
       if data['results'].is_a?(Hash)
         data['results'].each do |player, result|
@@ -925,11 +926,11 @@ module GitGameShow
             correct = result[:correct] || result['correct'] || false
             answer = result[:answer] || result['answer'] || "No answer"
             points = result[:points] || result['points'] || 0
-            
+
             status = correct ? "✓" : "✗"
             points_str = "(+#{points} points)"
             player_str = player == name ? "#{player} (You)" : player
-            
+
             player_output = "   #{player_str.ljust(20)} #{points_str.ljust(15)} #{answer} #{status}"
             if correct
               puts player_output.colorize(:green)
@@ -945,14 +946,14 @@ module GitGameShow
         # Fallback message if results isn't a hash
         puts "   No detailed results available".colorize(:yellow)
       end
-      
+
       # Display current scoreboard
       if data['scores']
         puts "\n   Current Standings:".colorize(:yellow)
         data['scores'].each_with_index do |(player, score), index|
           player_str = player == name ? "#{player} (You)" : player
           rank = index + 1
-          
+
           # Add medal emoji for top 3
           rank_display = case rank
                         when 1 then "🥇"
@@ -960,50 +961,50 @@ module GitGameShow
                         when 3 then "🥉"
                         else "#{rank}."
                         end
-          
+
           output = "   #{rank_display} #{player_str.ljust(20)} #{score} points"
-          
+
           if player == name
-            puts output.colorize(:light_yellow) 
+            puts output.colorize(:light_yellow)
           else
             puts output.colorize(:light_blue)
           end
         end
       end
-      
+
       puts "\n   Next question coming up automatically...".colorize(:yellow)
     end
-    
+
     def handle_scoreboard(data)
       # Invalidate any running timer and reset window title
       @current_timer_id = SecureRandom.uuid
       print "\033]0;Git Game Show - Scoreboard\007"  # Reset window title with context
-      
+
       # Always start with a clean screen for the scoreboard
       clear_screen
-      
+
       puts "\n"
       puts "   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓".colorize(:yellow)
       puts "   ┃               SCOREBOARD                  ┃".colorize(:yellow)
       puts "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛".colorize(:yellow)
       puts "\n"
-      
+
       # Get player positions
       position = 1
       last_score = nil
-      
+
       data['scores'].each do |player, score|
         # Determine position (handle ties)
         position = data['scores'].values.index(score) + 1 if last_score != score
         last_score = score
-        
+
         # Highlight current player
         player_str = player == name ? "#{player} (You)" : player
-        
+
         # Format with position
         position_str = "#{position}."
         score_str = "#{score} points"
-        
+
         # Add emoji for top 3
         case position
         when 1
@@ -1019,28 +1020,28 @@ module GitGameShow
           puts "   #{position_str.ljust(5)} #{player_str.ljust(25)} #{score_str}"
         end
       end
-      
+
       puts "\n   Next round coming up soon...".colorize(:cyan)
     end
-    
+
     def handle_game_end(data)
       # Invalidate any running timer and reset window title
       @current_timer_id = SecureRandom.uuid
       print "\033]0;Git Game Show - Game Over\007"  # Reset window title with context
-      
+
       # Clear any timer status line at the bottom
       term_height = `tput lines`.to_i rescue 24
       print "\e7"              # Save cursor position
       print "\e[#{term_height};1H"  # Move to bottom line
       print "\e[K"             # Clear line
       print "\e8"              # Restore cursor position
-      
+
       # Completely clear the screen
       clear_screen
       @game_state = :ended
-      
+
       winner = data['winner']
-      
+
       # ASCII trophy art
       trophy = <<-TROPHY
           ___________
@@ -1053,7 +1054,7 @@ module GitGameShow
               ) (
             _.' '._
       TROPHY
-      
+
       puts "\n\n"
       puts trophy.colorize(:yellow)
       puts "\n"
@@ -1061,32 +1062,32 @@ module GitGameShow
       puts "   ┃                GAME OVER                  ┃".colorize(:green)
       puts "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛".colorize(:green)
       puts "\n"
-      
+
       winner_is_you = winner == name
       if winner_is_you
         puts "   🎉 Congratulations! You won! 🎉".colorize(:light_yellow)
       else
         puts "   Winner: #{winner}! 🏆".colorize(:light_yellow)
       end
-      
+
       puts "\n   Final Scores:".colorize(:cyan)
-      
+
       # Get player positions
       position = 1
       last_score = nil
-      
+
       data['scores'].each do |player, score|
         # Determine position (handle ties)
         position = data['scores'].values.index(score) + 1 if last_score != score
         last_score = score
-        
+
         # Highlight current player
         player_str = player == name ? "#{player} (You)" : player
-        
+
         # Format with position
         position_str = "#{position}."
         score_str = "#{score} points"
-        
+
         # Add emoji for top 3
         case position
         when 1
@@ -1102,11 +1103,11 @@ module GitGameShow
           puts "   #{position_str.ljust(5)} #{player_str.ljust(25)} #{score_str}"
         end
       end
-      
+
       puts "\n\n   Thanks for playing Git Game Show!".colorize(:green)
       puts "   Waiting for the host to start a new game...".colorize(:cyan)
       puts "   Press Ctrl+C to exit, or wait for the next game".colorize(:light_black)
-      
+
       # Keep client ready to receive a new game start or reset message
       @game_over_timer = Thread.new do
         begin
@@ -1120,31 +1121,31 @@ module GitGameShow
         end
       end
     end
-    
+
     # Add a special method to handle game reset notifications
     def handle_game_reset(data)
       # Stop the game over timer if it's running
       @game_over_timer&.kill if @game_over_timer&.alive?
-      
+
       # Reset game state
       @game_state = :lobby
-      
+
       # Clear any lingering state
       @players = @players || [] # Keep existing players list if we have one
-      
+
       # Show the waiting room again
       clear_screen
       display_waiting_room
-      
+
       # Show a prominent message that we're back in waiting room mode
       puts "\n  🔄 The game has been reset by the host. Waiting for a new game to start...".colorize(:cyan)
       puts "  You can play again or press Ctrl+C to exit.".colorize(:cyan)
     end
-    
+
     def handle_chat(data)
       puts "[#{data['sender']}]: #{data['message']}".colorize(:light_blue)
     end
-    
+
     def send_message(message)
       begin
         @ws.send(message.to_json)

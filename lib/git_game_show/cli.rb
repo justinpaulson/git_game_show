@@ -20,7 +20,7 @@ module GitGameShow
       GitGameShow::Updater.check_for_updates if defined?(GitGameShow::Updater)
 
       prompt = TTY::Prompt.new
-      choice = prompt.select("What would you like to do?", [
+      choice = prompt.select("", [
         {name: "Host a new game", value: :host},
         {name: "Join a game", value: :join},
         {name: "Check for updates", value: :update},
@@ -105,20 +105,20 @@ module GitGameShow
         # Ask user which IP to use
         prompt = TTY::Prompt.new
         ip_choices = []
-        ip_choices << {name: "Local network only (#{local_ip})", value: {:type => :local, :ip => local_ip}} if !local_ip.empty?
-        ip_choices << {name: "Internet - External IP (#{external_ip}) - requires port forwarding", value: {:type => :external, :ip => external_ip}} if external_ip
-        ip_choices << {name: "Internet - Automatic tunneling with ngrok (requires free account)", value: {:type => :tunnel}}
+        ip_choices << {name: "Local IP (#{local_ip})", value: {:type => :local, :ip => local_ip}} if !local_ip.empty?
+        ip_choices << {name: "External IP (#{external_ip})", value: {:type => :external, :ip => external_ip}} if external_ip
+        ip_choices << {name: "Automatic tunneling", value: {:type => :tunnel}}
         ip_choices << {name: "Custom IP or hostname", value: {:type => :custom}}
 
         # Format question with explanation
-        puts "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-        puts "┃ NETWORK SETUP                                                                ┃"
-        puts "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫"
-        puts "┃ • Local IP: Only for players on the same network                             ┃"
-        puts "┃ • External IP: For internet players (requires router port forwarding)        ┃"
-        puts "┃ • Automatic tunneling: Uses ngrok (requires free account & authorization)    ┃"
-        puts "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-        puts ""
+        display_info_box(:info, "Network Setup", [
+          "  • Local IP: Only for players on the same network",
+          "  • External IP: For internet players",
+          "      - requires router port forwarding",
+          "  • Automatic tunneling: For internet players",
+          "      - requires free account & authorization through ngrok",
+          "  • Custom IP: For advanced users with specific network setup"
+        ])
 
         ip_choice = prompt.select("How should players connect to your game?", ip_choices)
 
@@ -132,13 +132,15 @@ module GitGameShow
         when :tunnel
           # Clear the screen and show informative message about ngrok
           display_ggs
-          puts "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-          puts "┃ NGROK TUNNEL SETUP                                                           ┃"
-          puts "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫"
-          puts "┃ The automatic tunneling option uses ngrok, a secure tunneling service.       ┃"
-          puts "┃ This will allow players to connect from anywhere without port forwarding.    ┃"
-          puts "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-          puts ""
+          display_info_box(:info, "Ngrok Tunnel Setup", [
+            " The automatic tunneling option uses ngrok, a secure tunneling service.",
+            " This will allow players to connect from anywhere without port forwarding.",
+            "                                                                            ",
+            " If you do not already have ngrok set up:",
+            " • The ngrok client will be downloaded and started automatically",
+            " • Instructions will be provided to set up a required free account on ngrok",
+            " • The tunnel will be established and the game will start"
+          ])
 
           # Check if ngrok is available
           begin
@@ -269,17 +271,15 @@ module GitGameShow
 
             if auth_needed
               display_ggs
-              puts "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-              puts "┃ NGROK AUTHORIZATION REQUIRED                                               ┃"
-              puts "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫"
-              puts "┃ Starting with ngrok v3, you need to create a free account and authorize    ┃"
-              puts "┃ to use TCP tunnels. This is a one-time setup.                              ┃"
-              puts "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-              puts ""
-              puts "Steps to authorize ngrok:"
-              puts "  1. Create a free account at https://ngrok.com/signup"
-              puts "  2. Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken"
-              puts "  3. Enter your authtoken below"
+              display_info_box(:info, 'Ngrok Authorization Required', [
+                " Starting with ngrok v3, you need to create a free account and authorize      ",
+                " to use TCP tunnels. This is a one-time setup.                                ",
+                "                                                                              ",
+                " Steps to authorize ngrok:                                                    ",
+                "  1. Create a free account at https://ngrok.com/signup                        ",
+                "  2. Get an authtoken https://dashboard.ngrok.com/get-started/your-authtoken  ",
+                "  3. Enter your authtoken below                                               "
+              ])
               puts ""
 
               prompt = TTY::Prompt.new
@@ -364,21 +364,20 @@ module GitGameShow
 
                     display_ggs
 
-                    puts "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-                    puts "┃ TUNNEL ESTABLISHED SUCCESSFULLY!                                             ┃"
-                    puts "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫"
-                    puts "┃ • Your game is now accessible over the internet                              ┃"
-                    puts "┃ • The ngrok tunnel is running in the background:                             ┃"
-                    puts "┃                                                                              ┃"
-                    puts "┃   ngrok ip:         #{ip.ljust(57)}┃"
-                    puts "┃   ngrok port:       #{external_port.to_s.ljust(57)}┃"
-                    puts "┃   ngrok public URL: #{public_url.ljust(57)}┃"
-                    puts "┃                                                                              ┃"
-                    puts "┃ • DO NOT close the terminal window until your game is finished               ┃"
-                    puts "┃ • The tunnel will automatically close when you exit the game                 ┃"
-                    puts "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-                    puts ""
-                    puts "Public URL: #{public_url}"
+                    # We need to handle the colorized content within the green box
+                    content = [
+                      " Your game is now accessible over the internet",
+                      " The ngrok tunnel is running in the background:",
+                      "                                                                            ",
+                      "   ngrok ip:         #{ip.ljust(57)}".colorize(:light_blue),
+                      "   ngrok port:       #{external_port.to_s.ljust(57)}".colorize(:light_blue),
+                      "   ngrok public URL: #{public_url.ljust(57)}".colorize(:light_blue),
+                      "                                                                            ",
+                      " DO NOT close the terminal window until your game is finished",
+                      " The tunnel will automatically close when you exit the game"
+                    ]
+
+                    display_info_box(:success, 'Ngrok tunnel established successfully!', content)
                     puts ""
                     puts "Press Enter to continue..."
                     gets
@@ -392,20 +391,17 @@ module GitGameShow
 
             unless tunnel_url
               display_ggs
-              puts "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-              puts "┃ TUNNEL SETUP FAILED                                                          ┃"
-              puts "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫"
-              puts "┃ • ngrok tunnel could not be established                                      ┃"
-              puts "┃ • Most common reason: Missing or invalid ngrok authentication token          ┃"
-              puts "┃ • Falling back to local IP (players will only be able to join locally)       ┃"
-              puts "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-              puts ""
-              puts "Common solutions:"
-              puts "  1. Create a free account at https://ngrok.com/signup"
-              puts "  2. Get your authtoken from https://dashboard.ngrok.com/get-started/your-authtoken"
-              puts "  3. Run this command: ngrok config add-authtoken <YOUR_TOKEN>"
-              puts "  4. Then restart the game and try tunneling again"
-              puts ""
+              display_info_box(:error, 'Tunnel setup failed!', [
+                " ngrok tunnel could not be established",
+                " Most common reason: Missing or invalid ngrok authentication token",
+                " Falling back to local IP (players will only be able to join locally)",
+                "                                                                            ",
+                " Common solutions:",
+                "  1. Create a free account at https://ngrok.com/signup",
+                "  2. Get an authtoken https://dashboard.ngrok.com/get-started/your-authtoken",
+                "  3. Run this command: ngrok config add-authtoken <YOUR_TOKEN>",
+                "  4. Then restart the game and try tunneling again"
+              ])
               puts "Press Enter to continue with local IP..."
               gets
 
@@ -413,14 +409,11 @@ module GitGameShow
             end
           rescue => e
             display_ggs
-            puts "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-            puts "┃ ERROR SETTING UP NGROK TUNNEL                                                ┃"
-            puts "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫"
-            puts "┃ • An error occurred while trying to set up the ngrok tunnel                  ┃"
-            puts "┃ • This is likely an authentication issue with ngrok                          ┃"
-            puts "┃ • Falling back to local IP (players will only be able to join locally)       ┃"
-            puts "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-            puts ""
+            display_info_box(:error, 'Error setting up ngrok tunnel!', [
+              " An error occurred while trying to set up the ngrok tunnel",
+              " This is likely an authentication issue with ngrok",
+              " Falling back to local IP (players will only be able to join locally)"
+            ])
             puts "Error details: #{e.message}"
             puts ""
             puts "Press Enter to continue with local IP..."
@@ -525,31 +518,34 @@ module GitGameShow
         "╚██████╔╝".colorize(:red) + " ╚██████╔╝".colorize(:green) + " ██████╔╝".colorize(:blue),
         " ╚═════╝ ".colorize(:red) + "  ╚═════╝ ".colorize(:green) + " ╚═════╝ ".colorize(:blue),
       ]
-      lines.each { |line| puts line }
+      lines.each { |line| puts line.center(120) }
     end
 
     def display_game_logo
       clear_screen
-      puts " ██████╗ ██╗████████╗".colorize(:red) + "     ██████╗  █████╗ ███╗   ███╗███████╗".colorize(:green)
-      puts "██╔════╝ ██║╚══██╔══╝".colorize(:red) + "    ██╔════╝ ██╔══██╗████╗ ████║██╔════╝".colorize(:green)
-      puts "██║  ███╗██║   ██║   ".colorize(:red) + "    ██║  ███╗███████║██╔████╔██║█████╗  ".colorize(:green)
-      puts "██║   ██║██║   ██║   ".colorize(:red) + "    ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝  ".colorize(:green)
-      puts "╚██████╔╝██║   ██║   ".colorize(:red) + "    ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗".colorize(:green)
-      puts " ╚═════╝ ╚═╝   ╚═╝   ".colorize(:red) + "     ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝".colorize(:green)
+      puts (" ██████╗ ██╗████████╗".colorize(:red) + "     ██████╗  █████╗ ███╗   ███╗███████╗".colorize(:green)).center(110)
+      puts ("██╔════╝ ██║╚══██╔══╝".colorize(:red) + "    ██╔════╝ ██╔══██╗████╗ ████║██╔════╝".colorize(:green)).center(110)
+      puts ("██║  ███╗██║   ██║   ".colorize(:red) + "    ██║  ███╗███████║██╔████╔██║█████╗  ".colorize(:green)).center(110)
+      puts ("██║   ██║██║   ██║   ".colorize(:red) + "    ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝  ".colorize(:green)).center(110)
+      puts ("╚██████╔╝██║   ██║   ".colorize(:red) + "    ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗".colorize(:green)).center(110)
+      puts (" ╚═════╝ ╚═╝   ╚═╝   ".colorize(:red) + "     ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝".colorize(:green)).center(110)
 
-      puts " █████╗ ██╗  ██╗ ██████╗ ██╗    ██╗".colorize(:blue)
-      puts "██╔═══╝ ██║  ██║██╔═══██╗██║    ██║".colorize(:blue)
-      puts "███████╗███████║██║   ██║██║ █╗ ██║".colorize(:blue)
-      puts "╚════██║██╔══██║██║   ██║██║███╗██║".colorize(:blue)
-      puts "██████╔╝██║  ██║╚██████╔╝╚███╔███╔╝".colorize(:blue)
-      puts "╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ ".colorize(:blue)
+      puts (" █████╗ ██╗  ██╗ ██████╗ ██╗    ██╗".colorize(:blue)).center(95)
+      puts ("██╔═══╝ ██║  ██║██╔═══██╗██║    ██║".colorize(:blue)).center(95)
+      puts ("███████╗███████║██║   ██║██║ █╗ ██║".colorize(:blue)).center(95)
+      puts ("╚════██║██╔══██║██║   ██║██║███╗██║".colorize(:blue)).center(95)
+      puts ("██████╔╝██║  ██║╚██████╔╝╚███╔███╔╝".colorize(:blue)).center(95)
+      puts ("╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝ ".colorize(:blue)).center(95)
     end
 
     def display_welcome_screen
       display_game_logo
-
-      puts "\nWelcome to Git Game Show version #{GitGameShow::VERSION}!".colorize(:light_blue)
-      puts "Test your team's Git knowledge with fun trivia games.\n\n"
+      puts ""
+      display_info_box(:info, "Welcome to Git Game Show! version " + GitGameShow::VERSION, [
+        " Test your team's knowledge with fun mini games based on git commit history.",
+        "",
+        " Choose to host a new game or join an existing one."
+      ])
     end
 
   def prompt_for_host_options
@@ -592,6 +588,42 @@ module GitGameShow
       nouns = %w[dog cat fox tiger panda bear whale shark lion wolf dragon eagle falcon rocket ship star planet moon river mountain]
 
       "#{adjectives.sample}-#{nouns.sample}-#{rand(100..999)}"
+    end
+
+    def display_info_box(kind, heading, content, width = 80)
+      # Set color based on the kind of box
+      color = case kind.to_sym
+              when :info
+                :light_blue
+              when :success
+                :green
+              when :error
+                :red
+              else
+                :light_blue
+              end
+
+      # Calculate border width - using 78 as in existing boxes
+      content_width = width - 2
+
+      # Create the box with borders and heading in the specified color
+      puts ("╭" + "─" * content_width + "╮").colorize(color)
+      puts "│#{heading.center(content_width)}│".colorize(color)
+      puts ("├" + "─" * content_width + "┤").colorize(color)
+
+      # Split content by lines and format each line
+      if content.is_a?(String)
+        content.each_line do |line|
+          puts "│".colorize(color) + "#{line.chomp}".ljust(content_width) + "│".colorize(color)
+        end
+      elsif content.is_a?(Array)
+        content.each do |line|
+          puts "│".colorize(color) + "#{line}".ljust(content_width) + "│".colorize(color)
+        end
+      end
+
+      puts ("╰" + "─" * content_width + "╯").colorize(color)
+      puts ""
     end
   end
 end

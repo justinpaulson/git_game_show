@@ -17,6 +17,7 @@ module GitGameShow
       @players = []
       @game_state = :lobby  # :lobby, :playing, :ended
       @current_timer_id = nil
+      @game_width = 80
     end
 
     def connect
@@ -27,7 +28,7 @@ module GitGameShow
         # For ngrok TCP tunnels, we should use regular ws:// since ngrok tcp doesn't provide SSL termination
         # Only use wss:// if the secure flag is explicitly set (for configured HTTPS endpoints)
         protocol = if @secure
-          puts "Using secure WebSocket connection (wss://)".colorize(:cyan)
+          puts "Using secure WebSocket connection (wss://)".colorize(:light_blue)
           'wss'
         else
           'ws'
@@ -132,13 +133,13 @@ module GitGameShow
       clear_screen
 
       # Draw header with fancy box
-      terminal_width = `tput cols`.to_i rescue 80
+      terminal_width = `tput cols`.to_i rescue @game_width
       terminal_height = `tput lines`.to_i rescue 24
 
       # Create title box
-      puts "┏#{"━" * (terminal_width - 2)}┓".colorize(:green)
-      puts "┃#{" GIT GAME SHOW - WAITING ROOM ".center(terminal_width - 2)}┃".colorize(:green)
-      puts "┗#{"━" * (terminal_width - 2)}┛".colorize(:green)
+      puts "╭#{"─" * (terminal_width - 2)}╮".colorize(:green)
+      puts "│#{" Git Game Show - Waiting Room ".center(terminal_width - 2)}│".colorize(:green)
+      puts "╰#{"─" * (terminal_width - 2)}╯".colorize(:green)
 
       # Left column width (2/3 of terminal) for main content
       left_width = (terminal_width * 0.65).to_i
@@ -148,20 +149,20 @@ module GitGameShow
       puts "  Welcome to Git Game Show!".colorize(:yellow)
       puts "  Test your knowledge about Git and your team's commits through fun mini-games.".colorize(:light_white)
       puts "\n"
-      puts "  🔹 INSTRUCTIONS:".colorize(:cyan)
+      puts "  🔹 Instructions:".colorize(:light_blue)
       puts "    • The game consists of multiple rounds with different question types".colorize(:light_white)
       puts "    • Each round has a theme based on Git commit history".colorize(:light_white)
       puts "    • Answer questions as quickly as possible for maximum points".colorize(:light_white)
       puts "    • The player with the most points at the end wins!".colorize(:light_white)
       puts "\n"
-      puts "  🔹 STATUS: Waiting for the host to start the game...".colorize(:light_yellow)
+      puts "  🔹 Status: Waiting for the host to start the game...".colorize(:light_yellow)
       puts "\n"
 
       # Draw player section in a box
       player_box_width = terminal_width - 4
-      puts "  ┏#{"━" * player_box_width}┓".colorize(:cyan)
-      puts "  ┃#{" PLAYERS ".center(player_box_width)}┃".colorize(:cyan)
-      puts "  ┗#{"━" * player_box_width}┛".colorize(:cyan)
+      puts ("╭#{"─" * player_box_width}╮").center(terminal_width).colorize(:light_blue)
+      puts ("│#{" Players ".center(player_box_width)}│").center(terminal_width).colorize(:light_blue)
+      puts ("╰#{"─" * player_box_width}╯").center(terminal_width).colorize(:light_blue)
 
       # Display list of players in a nicer format
       if @players.empty?
@@ -255,9 +256,11 @@ module GitGameShow
 
       # Draw question header once
       if question_number && total_questions
-        puts "\n   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓".colorize(:cyan)
-        puts "   ┃#{"QUESTION #{question_number} of #{total_questions}".center(45)}┃".colorize(:cyan)
-        puts "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛".colorize(:cyan)
+        box_width = 42
+        puts ""
+        puts ("╭" + "─" * box_width + "╮").center(@game_width).colorize(:light_blue)
+        puts ("│#{'Question #{question_number} of #{total_questions}'.center(box_width-2)}│").center(@game_width).colorize(:light_blue)
+        puts ("╰" + "─" * box_width + "╯").center(@game_width).colorize(:light_blue)
       end
 
       # Draw the main question text once
@@ -271,16 +274,11 @@ module GitGameShow
       puts "   • Selected items move with cursor when you press ↑/↓".colorize(:white)
       puts "   • Navigate to Submit and press ENTER when finished".colorize(:white)
 
-      # Draw the header for the list content once
-      puts "\n   CURRENT ORDER:".colorize(:light_blue)
-
       # Calculate where the list content starts on screen
       content_start_line = question_number ? 15 : 12
 
       # Draw the list content (this will be redrawn repeatedly)
       draw_ordering_list(current_order, cursor_index, selected_index, content_start_line, num_options)
-
-      # Initialize variables
 
       # Main interaction loop
       loop do
@@ -544,14 +542,15 @@ module GitGameShow
       clear_screen
 
       # Display a fun "Game Starting" animation
+      box_width = 40
       puts "\n\n"
-      puts "   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓".colorize(:green)
-      puts "   ┃             GAME STARTING...              ┃".colorize(:green)
-      puts "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛".colorize(:green)
+      puts ("╭" + "─" * box_width + "╮").center(@game_width).colorize(:green)
+      puts ("│" + "Game starting...".center(box_width) + "│").center(@game_width).colorize(:green)
+      puts ("╰" + "─" * box_width + "╯").center(@game_width).colorize(:green)
       puts "\n\n"
 
-      puts "   Total rounds: #{@total_rounds}".colorize(:cyan)
-      puts "   Players: #{@players.join(', ')}".colorize(:cyan)
+      puts "   Total rounds: #{@total_rounds}".colorize(:light_blue)
+      puts "   Players: #{@players.join(', ')}".colorize(:light_blue)
       puts "\n\n"
       puts "   Get ready for the first round!".colorize(:yellow)
       puts "\n\n"
@@ -573,21 +572,22 @@ module GitGameShow
         end
       else
         # During gameplay, just show a notification without disrupting the game UI
-        terminal_width = `tput cols`.to_i rescue 80
+        terminal_width = `tput cols`.to_i rescue @game_width
 
         # Create a notification box that won't interfere with ongoing gameplay
-        puts "\n┏#{"━" * (terminal_width - 2)}┓".colorize(:cyan)
+        puts ""
+        puts "╭#{"─" * (terminal_width - 2)}╮".colorize(:light_blue)
 
         if data['type'] == 'player_joined'
-          puts "┃#{" 🟢 #{data['name']} has joined the game ".center(terminal_width - 2)}┃".colorize(:green)
+          puts "│#{" 🟢 #{data['name']} has joined the game ".center(terminal_width - 2)}│".colorize(:green)
         else
-          puts "┃#{" 🔴 #{data['name']} has left the game ".center(terminal_width - 2)}┃".colorize(:yellow)
+          puts "│#{" 🔴 #{data['name']} has left the game ".center(terminal_width - 2)}│".colorize(:yellow)
         end
 
         # Don't show all players during gameplay - can be too disruptive
         # Just show the total count
-        puts "┃#{" Total players: #{data['players'].size} ".center(terminal_width - 2)}┃".colorize(:cyan)
-        puts "┗#{"━" * (terminal_width - 2)}┛".colorize(:cyan)
+        puts "│#{" Total players: #{data['players'].size} ".center(terminal_width - 2)}│".colorize(:light_blue)
+        puts "╰#{"─" * (terminal_width - 2)}╯".colorize(:light_blue)
       end
     end
 
@@ -604,27 +604,17 @@ module GitGameShow
 
       # Box is drawn with exactly 45 "━" characters for the top and bottom borders
       # The top and bottom including borders are 48 characters wide
-      box_top    = "   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-      box_bottom = "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-
-      # Get the text to center
-      round_text = "ROUND #{round_num} of #{total_rounds}"
-
-      # Find exact box width by measuring the top border
-      box_width = box_top.length # Should be 48 with Unicode characters
-
-      # The inner width is the box width minus the borders
-      inner_width = box_width - ("   ┃".length + "┃".length)
-
-      # Simply use Ruby's built-in center method for reliable centering
-      box_middle = "   ┃" + round_text.center(inner_width) + "┃"
+      box_width = 42
+      box_top    = ("╭" + "─" * (box_width - 2) + "╮").center(@game_width)
+      box_bottom = ("╰" + "─" * (box_width - 2) + "╯").center(@game_width)
+      box_middle = "│#{"Round #{round_num} of #{total_rounds}".center(box_width - 2)}│".center(@game_width)
 
       # Output the box
       puts box_top.colorize(:green)
       puts box_middle.colorize(:green)
       puts box_bottom.colorize(:green)
       puts "\n"
-      puts "   Mini-game: #{mini_game}".colorize(:cyan)
+      puts "   Mini-game: #{mini_game}".colorize(:light_blue)
       puts "   #{description}".colorize(:light_blue)
       puts "\n"
 
@@ -657,16 +647,15 @@ module GitGameShow
       puts "\n"
 
       # Draw a simple box for the question header
-      box_top    = "   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-      box_bottom = "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-      question_text = "QUESTION #{question_num} of #{total_questions}"
-      inner_width = box_top.length - ("   ┃".length + "┃".length)
-      box_middle = "   ┃" + question_text.center(inner_width) + "┃"
+      box_width = 42
+      box_top    = ("╭" + "─" * (box_width - 2) + "╮").center(@game_width)
+      box_bottom = ("╰" + "─" * (box_width - 2) + "╯").center(@game_width)
+      box_middle = "│#{"Question #{question_num} of #{total_questions}".center(box_width - 2)}│".center(@game_width)
 
       # Output the question box
-      puts box_top.colorize(:cyan)
-      puts box_middle.colorize(:cyan)
-      puts box_bottom.colorize(:cyan)
+      puts box_top.colorize(:light_blue)
+      puts box_middle.colorize(:light_blue)
+      puts box_bottom.colorize(:light_blue)
       puts "\n"
 
       # Display question
@@ -681,12 +670,6 @@ module GitGameShow
       # Create a unique timer ID for this question
       timer_id = SecureRandom.uuid
       @current_timer_id = timer_id
-      start_time = Time.now
-      end_time = start_time + timeout
-
-      # Static deadline info
-      puts "   Deadline: #{end_time.strftime('%I:%M:%S %p')}".colorize(:light_blue)
-      puts "\n"
 
       # Initialize remaining time for scoring
       @time_remaining = timeout
@@ -888,32 +871,31 @@ module GitGameShow
 
       # Box is drawn with exactly 45 "━" characters for the top and bottom borders
       # The top and bottom including borders are 48 characters wide
-      box_top    = "   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-      box_bottom = "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-
-      # Get the text to center
-      result_text = "ROUND RESULTS"
-
-      # Find exact box width by measuring the top border
-      box_width = box_top.length # Should be 48 with Unicode characters
-
-      # The inner width is the box width minus 2 characters for the borders
-      inner_width = box_width - ("   ┃".length + "┃".length)
-
-      # Simply use Ruby's built-in center method for reliable centering
-      box_middle = "   ┃" + result_text.center(inner_width) + "┃"
+      box_width = 40
+      box_top    = ("╭" + "─" * box_width + "╮").center(@game_width)
+      box_bottom = ("╰" + "─" * box_width + "╯").center(@game_width)
+      box_middle = "│#{'Round Results'.center(box_width)}│".center(@game_width)
 
       # Output the box
-      puts box_top.colorize(:cyan)
-      puts box_middle.colorize(:cyan)
-      puts box_bottom.colorize(:cyan)
+      puts box_top.colorize(:light_blue)
+      puts box_middle.colorize(:light_blue)
+      puts box_bottom.colorize(:light_blue)
       puts "\n"
 
       # Show question again
       puts "   Question: #{data['question'][:question]}".colorize(:light_blue)
-      puts "   Correct answer: #{data['correct_answer']}".colorize(:green)
 
-      puts "\n   All player results:".colorize(:cyan)
+      # Handle different display formats for correct answers
+      if data['question'][:question_type] == 'ordering' && data['correct_answer'].is_a?(Array)
+        puts "   Correct order (oldest to newest):".colorize(:green)
+        data['correct_answer'].each do |item|
+          puts "     #{item}".colorize(:green)
+        end
+      else
+        puts "   Correct answer: #{data['correct_answer']}".colorize(:green)
+      end
+
+      puts "\n   All player results:".colorize(:light_blue)
 
       # Debug data temporarily removed
 
@@ -931,11 +913,33 @@ module GitGameShow
             points_str = "(+#{points} points)"
             player_str = player == name ? "#{player} (You)" : player
 
-            player_output = "   #{player_str.ljust(20)} #{points_str.ljust(15)} #{answer} #{status}"
-            if correct
-              puts player_output.colorize(:green)
+            # For ordering questions with array answers, show them with numbers
+            if data['question'][:question_type] == 'ordering' && answer.is_a?(Array)
+              # First display player name and points
+              header = "   #{player_str.ljust(20)} #{points_str.ljust(15)} #{status}"
+
+              # Color according to correctness
+              if correct
+                puts header.colorize(:green)
+                puts "     Submitted order:".colorize(:green)
+                answer.each_with_index do |item, idx|
+                  puts "       #{idx + 1}. #{item}".colorize(:green)
+                end
+              else
+                puts header.colorize(:red)
+                puts "     Submitted order:".colorize(:red)
+                answer.each_with_index do |item, idx|
+                  puts "       #{idx + 1}. #{item}".colorize(:red)
+                end
+              end
             else
-              puts player_output.colorize(:red)
+              # Standard display for non-ordering questions
+              player_output = "   #{player_str.ljust(20)} #{points_str.ljust(15)} #{answer} #{status}"
+              if correct
+                puts player_output.colorize(:green)
+              else
+                puts player_output.colorize(:red)
+              end
             end
           else
             # Fallback for unexpected result format
@@ -983,10 +987,11 @@ module GitGameShow
       # Always start with a clean screen for the scoreboard
       clear_screen
 
-      puts "\n"
-      puts "   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓".colorize(:yellow)
-      puts "   ┃               SCOREBOARD                  ┃".colorize(:yellow)
-      puts "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛".colorize(:yellow)
+      box_width = 40
+      puts ""
+      puts ("╭" + "─" * box_width + "╮").center(@game_width).colorize(:yellow)
+      puts "│#{'Scoreboard'.center(box_width)}┃".center(@game_width).colorize(:yellow)
+      puts ("╰" + "─" * box_width + "╯").center(@game_width).colorize(:yellow)
       puts "\n"
 
       # Get player positions
@@ -1021,7 +1026,7 @@ module GitGameShow
         end
       end
 
-      puts "\n   Next round coming up soon...".colorize(:cyan)
+      puts "\n   Next round coming up soon...".colorize(:light_blue)
     end
 
     def handle_game_end(data)
@@ -1043,34 +1048,37 @@ module GitGameShow
       winner = data['winner']
 
       # ASCII trophy art
-      trophy = <<-TROPHY
-          ___________
-         '._==_==_=_.'
-         .-\\:      /-.
-        | (|:.     |) |
-         '-|:.     |-'
-           \\::.    /
-            '::. .'
-              ) (
-            _.' '._
-      TROPHY
+      trophy = [
+       "___________",
+      "'._==_==_=_.'",
+      ".-\\:      /-.",
+     "| (|:.     |) |",
+      "'-|:.     |-'",
+       "\\::.    /",
+        "'::. .'",
+          ") (",
+        "_.' '._"
+     ]
 
+      box_width = 40
       puts "\n\n"
-      puts trophy.colorize(:yellow)
+      trophy.each{|line| puts line.center(@game_width).colorize(:yellow)}
       puts "\n"
-      puts "   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓".colorize(:green)
-      puts "   ┃                GAME OVER                  ┃".colorize(:green)
-      puts "   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛".colorize(:green)
+      puts ("╭" + "─" * box_width + "╮").center(@game_width).colorize(:green)
+      puts "│#{'Game Over'.center(box_width)}│".center(@game_width).colorize(:green)
+      puts ("╰" + "─" * box_width + "╯").center(@game_width).colorize(:green)
       puts "\n"
 
       winner_is_you = winner == name
       if winner_is_you
-        puts "   🎉 Congratulations! You won! 🎉".colorize(:light_yellow)
+        puts "🎉 Congratulations! You won! 🎉".center(@game_width).colorize(:light_yellow)
       else
-        puts "   Winner: #{winner}! 🏆".colorize(:light_yellow)
+        puts "Winner: #{winner}! 🏆".center(@game_width).colorize(:light_yellow)
       end
 
-      puts "\n   Final Scores:".colorize(:cyan)
+      puts ""
+      puts "Final Scores".center(@game_width).colorize(:light_blue)
+      puts ""
 
       # Get player positions
       position = 1
@@ -1089,23 +1097,29 @@ module GitGameShow
         score_str = "#{score} points"
 
         # Add emoji for top 3
+        scores_width = @game_width - 30
         case position
         when 1
           position_str = "🥇 #{position_str}"
-          puts "   #{position_str.ljust(5)} #{player_str.ljust(25)} #{score_str}".colorize(:light_yellow)
+          left_string = (position_str.rjust(5) + ' ' + player_str).ljust(scores_width - score_str.length)
+          puts "#{left_string}#{score_str}".center(@game_width).colorize(:light_yellow)
         when 2
           position_str = "🥈 #{position_str}"
-          puts "   #{position_str.ljust(5)} #{player_str.ljust(25)} #{score_str}".colorize(:light_blue)
+          left_string = (position_str.rjust(5) + ' ' + player_str).ljust(scores_width - score_str.length)
+          puts "#{left_string}#{score_str}".center(@game_width).colorize(:light_blue)
         when 3
           position_str = "🥉 #{position_str}"
-          puts "   #{position_str.ljust(5)} #{player_str.ljust(25)} #{score_str}".colorize(:light_magenta)
+          left_string = (position_str.rjust(5) + ' ' + player_str).ljust(scores_width - score_str.length)
+          puts "#{left_string}#{score_str}".center(@game_width).colorize(:light_magenta)
         else
-          puts "   #{position_str.ljust(5)} #{player_str.ljust(25)} #{score_str}"
+          left_string = "  " + (position_str.rjust(5) + ' ' + player_str).ljust(scores_width - score_str.length)
+          puts "#{left_string}#{score_str}".center(@game_width)
         end
       end
 
-      puts "\n\n   Thanks for playing Git Game Show!".colorize(:green)
-      puts "   Waiting for the host to start a new game...".colorize(:cyan)
+      puts "\n"
+      puts "   Thanks for playing Git Game Show!".colorize(:green)
+      puts "   Waiting for the host to start a new game...".colorize(:light_blue)
       puts "   Press Ctrl+C to exit, or wait for the next game".colorize(:light_black)
 
       # Keep client ready to receive a new game start or reset message
@@ -1138,8 +1152,8 @@ module GitGameShow
       display_waiting_room
 
       # Show a prominent message that we're back in waiting room mode
-      puts "\n  🔄 The game has been reset by the host. Waiting for a new game to start...".colorize(:cyan)
-      puts "  You can play again or press Ctrl+C to exit.".colorize(:cyan)
+      puts "\n  🔄 The game has been reset by the host. Waiting for a new game to start...".colorize(:light_blue)
+      puts "  You can play again or press Ctrl+C to exit.".colorize(:light_blue)
     end
 
     def handle_chat(data)

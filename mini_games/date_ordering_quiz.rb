@@ -179,29 +179,68 @@ module GitGameShow
     def evaluate_answers(question, player_answers)
       results = {}
       
+      # Safety check for nil or empty responses
+      return results if player_answers.nil? || player_answers.empty?
+      return results unless question && question[:correct_answer]
+      
+      # Get total number of items in the correct answer
+      total_items = question[:correct_answer].size
+      
       player_answers.each do |player_name, answer_data|
+        # Skip nil entries
+        next unless player_name && answer_data
+        
+        # Extract player's answer with defensive checks
         player_answer = answer_data[:answer]
         time_taken = answer_data[:time_taken] || 20
         
-        # For the ordering quiz, we allow partial credit
-        correct_positions = 0
+        # Initialize points
+        points = 0
         
-        # Count how many items are in the correct position
-        question[:correct_answer].each_with_index do |item, index|
-          if player_answer && index < player_answer.size && player_answer[index] == item
-            correct_positions += 1
+        # New scoring system: checks positions relative to each other item
+        if player_answer && !player_answer.empty?
+          # Create a mapping from item to its position in player's answer
+          item_positions = {}
+          player_answer.each_with_index do |item, index|
+            item_positions[item] = index if item # Skip nil items
+          end
+          
+          # Create mapping from item to correct position
+          correct_positions = {}
+          question[:correct_answer].each_with_index do |item, index|
+            correct_positions[item] = index if item # Skip nil items
+          end
+          
+          # For each item, calculate points based on relative positions
+          question[:correct_answer].each_with_index do |item, correct_index|
+            # Skip if the item isn't in the player's answer
+            next unless item && item_positions.key?(item)
+            
+            player_index = item_positions[item]
+            
+            # Check position relative to other items
+            question[:correct_answer].each_with_index do |other_item, other_correct_index|
+              next if !other_item || item == other_item || !item_positions.key?(other_item)
+              
+              other_player_index = item_positions[other_item]
+              
+              # If this item should be before the other item
+              if correct_index < other_correct_index
+                points += 1 if player_index < other_player_index
+              # If this item should be after the other item
+              elsif correct_index > other_correct_index
+                points += 1 if player_index > other_player_index
+              end
+            end
           end
         end
         
-        # Calculate points: full credit for all correct, partial for some correct
-        total_items = question[:correct_answer].size
-        points = (correct_positions.to_f / total_items * 10).round
+        # Bonus points for perfect answer
+        perfect_score = total_items * (total_items - 1)
+        perfect_score = 1 if perfect_score <= 0 # Prevent division by zero
+        fully_correct = points == perfect_score
         
-        # Fully correct gets bonus points
-        if correct_positions == total_items
-          # Base bonus for fully correct answer
-          points += 3
-          
+        if fully_correct
           # Additional time-based bonus (faster answers get more points)
           if time_taken < 8  # Really fast (under 8 seconds)
             points += 4
@@ -210,17 +249,35 @@ module GitGameShow
           end
         end
         
-        # Create feedback with date info for displaying in results
-        feedback = "#{correct_positions}/#{total_items} positions correct"
+        # Create detailed feedback
+        max_possible = total_items * (total_items - 1)
+        max_possible = 1 if max_possible <= 0 # Prevent division by zero
+        feedback = "#{points}/#{max_possible} points (based on relative ordering)"
         if question[:commit_dates]
-          feedback += "\n\nActual dates:\n" + question[:commit_dates]
+          feedback += "\n\nActual dates:"
+          # Split by newlines and add them as separate lines for better readability
+          question[:commit_dates].to_s.split("\n").each do |date_line|
+            feedback += "\n  • #{date_line}"
+          end
         end
         
+        # Ensure we return all required fields
         results[player_name] = {
-          answer: player_answer,
-          correct: correct_positions == total_items,
-          points: points,
-          partial_score: feedback
+          answer: player_answer || [],
+          correct: fully_correct || false,
+          points: points || 0,
+          partial_score: feedback || ""
+        }
+      end
+      
+      # Return a default result if somehow we ended up with empty results
+      if results.empty? && !player_answers.empty?
+        player_name = player_answers.keys.first
+        results[player_name] = {
+          answer: [],
+          correct: false,
+          points: 0,
+          partial_score: "Error calculating score"
         }
       end
       

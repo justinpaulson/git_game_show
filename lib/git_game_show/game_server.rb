@@ -1592,7 +1592,7 @@ module GitGameShow
       # Enable all mini-games
       [
         GitGameShow::AuthorQuiz,
-        GitGameShow::CommitMessageQuiz,
+        GitGameShow::FileQuiz,
         GitGameShow::CommitMessageCompletion,
         GitGameShow::DateOrderingQuiz
       ]

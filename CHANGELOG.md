@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.9] - 2025-03-07
+
+### Fixed
+- File quiz was defaulting to sample questions, works now.
+
 ## [0.1.8] - 2025-03-07
 
 ### Fixed

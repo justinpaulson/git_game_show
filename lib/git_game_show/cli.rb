@@ -510,6 +510,7 @@ module GitGameShow
 
     def display_ggs
       clear_screen
+      puts ""
       lines = [
         " ██████╗ ".colorize(:red) + "  ██████╗ ".colorize(:green) + "  █████╗".colorize(:blue),
         "██╔════╝ ".colorize(:red) + " ██╔════╝ ".colorize(:green) + " ██╔═══╝".colorize(:blue),

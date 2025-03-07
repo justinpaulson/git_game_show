@@ -543,7 +543,7 @@ module GitGameShow
 
       # Display a fun "Game Starting" animation
       box_width = 40
-      puts "\n\n"
+      puts "\n"
       puts ("╭" + "─" * box_width + "╮").center(@game_width).colorize(:green)
       puts ("│" + "Game starting...".center(box_width) + "│").center(@game_width).colorize(:green)
       puts ("╰" + "─" * box_width + "╯").center(@game_width).colorize(:green)
@@ -600,8 +600,6 @@ module GitGameShow
       mini_game = data['mini_game']
       description = data['description']
 
-      puts "\n\n"
-
       # Box is drawn with exactly 45 "━" characters for the top and bottom borders
       # The top and bottom including borders are 48 characters wide
       box_width = 42
@@ -610,6 +608,7 @@ module GitGameShow
       box_middle = "│#{"Round #{round_num} of #{total_rounds}".center(box_width - 2)}│".center(@game_width)
 
       # Output the box
+      puts "\n"
       puts box_top.colorize(:green)
       puts box_middle.colorize(:green)
       puts box_bottom.colorize(:green)
@@ -643,9 +642,6 @@ module GitGameShow
 
       # No need to reserve space for timer - it will be at the bottom of the screen
 
-      # Display question header
-      puts "\n"
-
       # Draw a simple box for the question header
       box_width = 42
       box_top    = ("╭" + "─" * (box_width - 2) + "╮").center(@game_width)
@@ -653,6 +649,7 @@ module GitGameShow
       box_middle = "│#{"Question #{question_num} of #{total_questions}".center(box_width - 2)}│".center(@game_width)
 
       # Output the question box
+      puts "\n"
       puts box_top.colorize(:light_blue)
       puts box_middle.colorize(:light_blue)
       puts box_bottom.colorize(:light_blue)
@@ -867,8 +864,6 @@ module GitGameShow
       # Start with a clean screen
       clear_screen
 
-      puts "\n"
-
       # Box is drawn with exactly 45 "━" characters for the top and bottom borders
       # The top and bottom including borders are 48 characters wide
       box_width = 40
@@ -877,6 +872,7 @@ module GitGameShow
       box_middle = "│#{'Round Results'.center(box_width)}│".center(@game_width)
 
       # Output the box
+      puts "\n"
       puts box_top.colorize(:light_blue)
       puts box_middle.colorize(:light_blue)
       puts box_bottom.colorize(:light_blue)
@@ -988,7 +984,7 @@ module GitGameShow
       clear_screen
 
       box_width = 40
-      puts ""
+      puts "\n"
       puts ("╭" + "─" * box_width + "╮").center(@game_width).colorize(:yellow)
       puts "│#{'Scoreboard'.center(box_width)}┃".center(@game_width).colorize(:yellow)
       puts ("╰" + "─" * box_width + "╯").center(@game_width).colorize(:yellow)

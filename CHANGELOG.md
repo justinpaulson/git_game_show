@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.8] - 2025-03-07
+
+### Fixed
+- Fixed file quiz
+- Updated updater UI
+- Fixed ngrok server integration
+- Updated UI and scoring on date ordering
+
 ## [0.1.2] - 2025-03-04
 
 ### Fixed

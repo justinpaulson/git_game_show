@@ -1594,7 +1594,8 @@ module GitGameShow
         GitGameShow::AuthorQuiz,
         GitGameShow::FileQuiz,
         GitGameShow::CommitMessageCompletion,
-        GitGameShow::DateOrderingQuiz
+        GitGameShow::DateOrderingQuiz,
+        GitGameShow::BranchDetective
       ]
     end
   end

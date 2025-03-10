@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.10] - 2025-03-10
+
+### Added
+- New mini-game: Branch Detective
+
+### Changed
+- Fixed scoreboard display in player client
+
 ## [0.1.9] - 2025-03-07
 
 ### Fixed

@@ -986,7 +986,7 @@ module GitGameShow
       box_width = 40
       puts "\n"
       puts ("╭" + "─" * box_width + "╮").center(@game_width).colorize(:yellow)
-      puts "│#{'Scoreboard'.center(box_width)}┃".center(@game_width).colorize(:yellow)
+      puts "│#{'Scoreboard'.center(box_width)}│".center(@game_width).colorize(:yellow)
       puts ("╰" + "─" * box_width + "╯").center(@game_width).colorize(:yellow)
       puts "\n"
 

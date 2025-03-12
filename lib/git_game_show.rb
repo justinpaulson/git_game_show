@@ -24,7 +24,7 @@ module GitGameShow
     rounds: 3,
     question_timeout: 30, # seconds
     question_display_time: 5, # seconds to show results before next question
-    transition_delay: 5 # seconds between rounds
+    transition_delay: 10 # seconds between rounds
   }.freeze
 
   # Message types for WebSocket communication

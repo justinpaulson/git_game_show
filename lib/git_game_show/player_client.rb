@@ -115,7 +115,7 @@ module GitGameShow
       rescue JSON::ParserError => e
         puts "Invalid message format: #{e.message}".colorize(:red)
       rescue => e
-        puts "Error processing message: #{e.message}".colorize(:red)
+        puts "Error processing message: #{e.message}\n#{e.backtrace.join("\n")}".colorize(:red)
       end
     end
 
@@ -599,6 +599,7 @@ module GitGameShow
       total_rounds = data['total_rounds']
       mini_game = data['mini_game']
       description = data['description']
+      example = data['example']
 
       # Box is drawn with exactly 45 "━" characters for the top and bottom borders
       # The top and bottom including borders are 48 characters wide
@@ -616,7 +617,8 @@ module GitGameShow
       puts "   Mini-game: #{mini_game}".colorize(:light_blue)
       puts "   #{description}".colorize(:light_blue)
       puts "\n"
-
+      puts "   Example: #{example}"
+      puts "\n"
       # Count down to the start - don't sleep here as we're waiting for the server
       # to send us the questions after a fixed delay
       puts "   Get ready for the first question...".colorize(:yellow)
@@ -661,6 +663,19 @@ module GitGameShow
       # Display commit info if available
       if data['commit_info']
         puts "\n   Commit: #{data['commit_info']}".colorize(:yellow)
+      end
+
+      # Display code context if available (for BlameGame)
+      if data['context']
+        puts "\n   Code Context:".colorize(:light_blue)
+        data['context'].split("\n").each do |line|
+          # Check if this is the target line (with the > prefix)
+          if line.start_with?('>')
+            puts "   #{line}".colorize(:yellow) # Highlight the target line
+          else
+            puts "   #{line}".colorize(:white)
+          end
+        end
       end
       puts "\n"
 
@@ -830,6 +845,8 @@ module GitGameShow
       puts "\n   #{"─" * 40}".colorize(:light_black)
       puts "\n"
 
+      points_text = "(#{data['points']} points)"
+
       # Show immediate feedback
       if data['answer'] == "TIMEOUT"
         # Special handling for timeouts
@@ -838,7 +855,6 @@ module GitGameShow
         puts "   (0 points)".colorize(:light_black)
       elsif data['correct']
         # Correct answer
-        points_text = data['points'] > 0 ? " (+#{data['points']} points)" : ""
         puts "   ✅ CORRECT! Your answer was correct: #{data['answer']}#{points_text}".colorize(:green)
 
         # Show bonus points details if applicable
@@ -847,9 +863,21 @@ module GitGameShow
           puts "   🎉 SPEED BONUS: +#{bonus} points for fast answer!".colorize(:light_yellow)
         end
       else
-        # Incorrect answer
-        puts "   ❌ INCORRECT! The correct answer was: #{data['correct_answer']}".colorize(:red)
-        puts "   You answered: #{data['answer']} (0 points)".colorize(:yellow)
+        if data['correct_answer'].is_a?(Array)
+          puts "Correct Order".rjust(39).colorize(:green) + "  Your Order"
+          0.upto(data['correct_answer'].size - 1) do |i|
+            answer_color = data['correct_answer'][i] == data['answer'][i] ? :green : :red
+            truncated_1 = data['correct_answer'][i].length > 38 ? data['correct_answer'][i][0..35] + "..." : data['correct_answer'][i]
+            truncated_2 = data['answer'][i].length > 38 ? data['answer'][i][0..35] + "..." : data['answer'][i]
+            puts "#{truncated_1}".rjust(38).colorize(:green) + "  #{truncated_2}".colorize(answer_color)
+          end
+          puts "\n\n"
+          puts points_text.center(80).colorize(:yellow)
+        else
+          # Incorrect answer
+          puts "   ❌ INCORRECT! The correct answer was: #{data['correct_answer']}".colorize(:red)
+          puts "   You answered: #{data['answer']} (0 points)".colorize(:yellow)
+        end
       end
 
       puts "\n   Waiting for the round to complete. Please wait for the next question...".colorize(:light_blue)
@@ -859,7 +887,7 @@ module GitGameShow
     def handle_round_result(data)
       # Invalidate any running timer and reset window title
       @current_timer_id = SecureRandom.uuid
-      print "\033]0;Git Game Show - Round Results\007"  # Reset window title with context
+      print "\033]0;Git Game Show - Question Results\007"  # Reset window title with context
 
       # Start with a clean screen
       clear_screen
@@ -869,7 +897,7 @@ module GitGameShow
       box_width = 40
       box_top    = ("╭" + "─" * box_width + "╮").center(@game_width)
       box_bottom = ("╰" + "─" * box_width + "╯").center(@game_width)
-      box_middle = "│#{'Round Results'.center(box_width)}│".center(@game_width)
+      box_middle = "│#{'Question Results'.center(box_width)}│".center(@game_width)
 
       # Output the box
       puts "\n"
@@ -882,8 +910,8 @@ module GitGameShow
       puts "   Question: #{data['question'][:question]}".colorize(:light_blue)
 
       # Handle different display formats for correct answers
-      if data['question'][:question_type] == 'ordering' && data['correct_answer'].is_a?(Array)
-        puts "   Correct order (oldest to newest):".colorize(:green)
+      if data['correct_answer'].is_a?(Array)
+        puts "   Correct order".colorize(:green)
         data['correct_answer'].each do |item|
           puts "     #{item}".colorize(:green)
         end
@@ -901,9 +929,9 @@ module GitGameShow
           # Ensure result is a hash with the expected keys
           if result.is_a?(Hash)
             # Check if 'correct' is a boolean or check string equality if it's a string
-            correct = result[:correct] || result['correct'] || false
-            answer = result[:answer] || result['answer'] || "No answer"
-            points = result[:points] || result['points'] || 0
+            correct = result['correct'] || false
+            answer = result['answer'].is_a?(Array) ? "" : (result['answer'] || "No answer")
+            points = result['points'] || 0
 
             status = correct ? "✓" : "✗"
             points_str = "(+#{points} points)"

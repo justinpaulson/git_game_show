@@ -165,28 +165,60 @@ module GitGameShow
         print @cursor.move_to(@main_width + 2, 5)
         print "Waiting for players...".colorize(:light_black)
       else
+        # Sort players by score (highest first)
+        sorted_players = @players.keys.sort_by { |name| -(@scores[name] || 0) }
+
         # Show scrolling indicator if needed
         if @players.size > max_visible_players
           print @cursor.move_to(@main_width + 2, 4)
           print "Showing #{max_visible_players} of #{@players.size}:".colorize(:light_yellow)
         end
 
-        # Determine which players to display (for now, show first N players)
-        visible_players = @players.keys.take(max_visible_players)
+        # Determine which players to display (show top N players by score)
+        visible_players = sorted_players.take(max_visible_players)
 
-        # Display visible players
+        # Display visible players with their scores
         visible_players.each_with_index do |name, index|
           print @cursor.move_to(@main_width + 2, 5 + index)
+
+          # Get score (default to 0 if not found)
+          score = @scores[name] || 0
+          score_str = score.to_s
+
+          # Calculate available space for name and right-justified score
+          # Allow space for prefix (like "🥇 " or "10. ") + minimum 3 chars of name + 2 spaces + score
+          usable_width = @sidebar_width - 6
+          prefix_width = 3 # Account for emoji or number + dot + space
+
+          # Apply medal emoji for top 3 players when in game
+          prefix = ""
+          if @game_state == :playing && @scores.any?
+            prefix = case index
+                     when 0 then "🥇 "
+                     when 1 then "🥈 "
+                     when 2 then "🥉 "
+                     else "#{index + 1}. "
+                     end
+          else
+            prefix = "#{index + 1}. "
+          end
+
+          # Calculate how much space we have for the name
+          max_name_length = usable_width - score_str.length - 1 # 2 spaces before score
+
           # Truncate long names
-          truncated_name = name.length > (@sidebar_width - 6) ?
-                           "#{name[0...(@sidebar_width-9)]}..." :
+          truncated_name = name.length > max_name_length ?
+                           "#{name[0...(max_name_length-3)]}..." :
                            name
 
-          if index < 9
-            print "#{index + 1}. #{truncated_name}".colorize(:light_blue)
-          else
-            print "#{index + 1}. #{truncated_name}".colorize(:light_blue)
-          end
+          # Print player name
+          print @cursor.move_to(@main_width + 2, 5 + index)
+          print "#{prefix}#{truncated_name}".colorize(:light_blue)
+
+          # Print right-justified score
+          score_position = @main_width + usable_width
+          print @cursor.move_to(score_position, 5 + index)
+          print score_str.colorize(:light_blue)
         end
 
         # If there are more players than can be shown, add an indicator
@@ -391,6 +423,8 @@ module GitGameShow
       current_question = @round_questions[@current_question_index]
 
       # Handle nil answer (timeout) differently
+      points = 0
+
       if answer.nil?
         # For timeouts, set a special "TIMEOUT" answer with 0 points
         @player_answers[player_name] = {
@@ -398,7 +432,7 @@ module GitGameShow
           time_taken: time_taken,
           answered: true,
           correct: false,
-          points: 0
+          points: points
         }
 
         # Send timeout feedback to the player
@@ -407,7 +441,7 @@ module GitGameShow
           answer: "TIMEOUT",
           correct: false,
           correct_answer: current_question[:correct_answer],
-          points: 0
+          points: points
         }
         @players[player_name]&.send(feedback.to_json)
 
@@ -421,7 +455,8 @@ module GitGameShow
         if current_question[:question_type] == 'ordering'
           # Just store the answer and time, points will be calculated in evaluate_answers
           correct = false # Will be properly set during evaluation
-          points = 0     # Will be properly set during evaluation
+          points = @current_mini_game.evaluate_answers(current_question, {player_name => {answer: answer, time_taken: time_taken}})
+          points = points.values.first[:points]
         else
           # For regular quizzes, calculate points immediately
           correct = answer == current_question[:correct_answer]
@@ -575,6 +610,9 @@ module GitGameShow
         results.each do |player, result|
           @scores[player] = (@scores[player] || 0) + (result[:points] || 0)
         end
+
+        # Update the player list in sidebar to reflect new scores and ranking
+        update_player_list
       rescue => e
         log_message("Error evaluating answers: #{e.message}", :red)
       end
@@ -727,8 +765,6 @@ module GitGameShow
 
       # Select mini-game for this round with better variety
       @current_mini_game = select_next_mini_game.new
-      @round_questions = @current_mini_game.generate_questions(@repo)
-      @current_question_index = 0
 
       # Announce new round
       broadcast_message({
@@ -736,8 +772,13 @@ module GitGameShow
         round: @current_round,
         total_rounds: @rounds,
         mini_game: @current_mini_game.class.name,
-        description: @current_mini_game.class.description
+        description: @current_mini_game.class.description,
+        example: @current_mini_game.class.example
       })
+
+      @round_questions = @current_mini_game.generate_questions(@repo)
+      @current_question_index = 0
+
 
       log_message("Starting round #{@current_round}: #{@current_mini_game.class.name}", :cyan)
 
@@ -825,6 +866,11 @@ module GitGameShow
           else
             question_data[:commit_info] = current_question[:commit_info].to_s
           end
+        end
+
+        # Add context if available (for BlameGame)
+        if current_question && current_question[:context]
+          question_data[:context] = current_question[:context].to_s
         end
       rescue => e
         log_message("Error adding additional question data: #{e.message}", :red)
@@ -1595,7 +1641,8 @@ module GitGameShow
         GitGameShow::FileQuiz,
         GitGameShow::CommitMessageCompletion,
         GitGameShow::DateOrderingQuiz,
-        GitGameShow::BranchDetective
+        GitGameShow::BranchDetective,
+        GitGameShow::BlameGame
       ]
     end
   end

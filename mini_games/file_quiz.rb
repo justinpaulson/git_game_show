@@ -5,6 +5,19 @@ module GitGameShow
   class FileQuiz < MiniGame
     self.name = "File Quiz"
     self.description = "Match the commit message to the right changed file!"
+    self.example = <<~EXAMPLE
+    Which file was most likely changed in this commit?
+
+       "Update documentation with new API endpoints"
+
+    abc123f (Mar 15, 2025)
+
+    Choose your answer:
+      src/main.js
+      css/styles.css
+    \e[0;32;49m> README.md\e[0m
+      lib/utils.js
+    EXAMPLE
     self.questions_per_round = 5
 
     # Custom timing for this mini-game (same as AuthorQuiz)

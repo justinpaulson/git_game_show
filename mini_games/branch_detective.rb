@@ -2,11 +2,24 @@ module GitGameShow
   class BranchDetective < MiniGame
     self.name = "Branch Detective"
     self.description = "Identify which branch a commit belongs to!"
+    self.example = <<~EXAMPLE
+    Which branch was this commit originally made on?
+
+       "Add pagination to users list"
+
+    abcdef7 (by Jane Developer on 2023-05-20 16:45:12)
+
+    Choose your answer:
+      development
+    \e[0;32;49m> feature/user-management\e[0m
+      main
+      hotfix/login-issue
+    EXAMPLE
     self.questions_per_round = 5
 
     # Custom timing for this mini-game
     def self.question_timeout
-      15 # 15 seconds per question
+      20
     end
 
     def self.question_display_time

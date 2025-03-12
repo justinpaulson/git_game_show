@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.0] - 2025-03-12
+
+### Changed
+- Bumped to 0.2.0 for first stable minor release with all initial games implemented
+
+## [0.1.11] - 2025-03-11
+
+### Added
+- New mini-game: Blame Game - identify who committed a specific line of code
+
 ## [0.1.10] - 2025-03-10
 
 ### Added

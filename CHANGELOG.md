@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.2.1] - 2025-03-12
+- Increased timeout between games, cleaned up some ui issues
+
 ## [0.2.0] - 2025-03-12
 
 ### Changed

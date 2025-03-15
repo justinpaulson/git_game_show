@@ -114,6 +114,10 @@ The game includes several mini-games based on Git repository data:
 
 MIT
 
+## Inspiration
+
+Git Game Show was inspired by https://github.com/jsomers/git-game.
+
 ## Contributing
 
 1. Fork the repository

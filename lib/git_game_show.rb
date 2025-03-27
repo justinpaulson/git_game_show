@@ -27,24 +27,47 @@ module GitGameShow
     transition_delay: 10 # seconds between rounds
   }.freeze
 
-  # Message types for WebSocket communication
-  module MessageType
-    JOIN_REQUEST = 'join_request'
-    JOIN_RESPONSE = 'join_response'
-    GAME_START = 'game_start'
-    QUESTION = 'question'
-    ANSWER = 'answer'
-    ANSWER_FEEDBACK = 'answer_feedback' # New message type for immediate feedback
-    ROUND_RESULT = 'round_result'
-    SCOREBOARD = 'scoreboard'
-    GAME_END = 'game_end'
-    GAME_RESET = 'game_reset' # New message type for resetting the game
-    CHAT = 'chat'
-  end
+  # File structure is now:
+  # 1. Load core message types first
+  # 2. Load version file
+  # 3. Load core files
+  # 4. Load UI components
+  # 5. Load network components
+  # 6. Load main coordination files (server_handler, game_server)
+  # 7. Load mini-games
 end
 
-# Load all files in the git_game_show directory
-Dir[File.join(__dir__, 'git_game_show', '*.rb')].sort.each { |file| require file }
+# Load message types
+require_relative 'git_game_show/message_type'
+
+# Load version file
+require_relative 'git_game_show/version'
+
+# Load core components
+require_relative 'git_game_show/core/game_state'
+require_relative 'git_game_show/core/player_manager'
+require_relative 'git_game_show/core/mini_game_loader'
+require_relative 'git_game_show/core/question_manager'
+
+# Load UI components
+require_relative 'git_game_show/ui/renderer'
+require_relative 'git_game_show/ui/sidebar'
+require_relative 'git_game_show/ui/console'
+require_relative 'git_game_show/ui/welcome_screen'
+
+# Load network components
+require_relative 'git_game_show/network/server'
+require_relative 'git_game_show/network/message_handler'
+
+# Load coordination files
+require_relative 'git_game_show/server_handler'
+require_relative 'git_game_show/game_server'
+
+# Load other required files
+require_relative 'git_game_show/cli'
+require_relative 'git_game_show/mini_game'
+require_relative 'git_game_show/player_client'
+require_relative 'git_game_show/updater' if File.exist?(File.join(__dir__, 'git_game_show', 'updater.rb'))
 
 # Load all mini-games
 Dir[File.join(__dir__, '..', 'mini_games', '*.rb')].sort.each { |file| require file }

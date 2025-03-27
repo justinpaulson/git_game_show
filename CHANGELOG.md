@@ -1,4 +1,6 @@
 # Changelog
+## [0.2.2] - 2025-03-27
+- Refactored main game server, fixed some small bugs.
 
 ## [0.2.1] - 2025-03-12
 - Increased timeout between games, cleaned up some ui issues

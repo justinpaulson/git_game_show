@@ -41,8 +41,11 @@ module GitGameShow
       # Remove the player
       @player_manager.remove_player(player_name)
 
+      # Update the sidebar to reflect the player leaving
+      @server_handler.instance_variable_get(:@sidebar)&.update_player_list(@player_manager.player_names, @player_manager.scores)
+
       # Log message for player leaving
-      @renderer.log_message("ud83dudd34 #{player_name} has left the game", :yellow)
+      @renderer.log_message("🔴 #{player_name} has left the game", :yellow)
 
       # Notify other players
       @server_handler.broadcast_message({
@@ -92,6 +95,9 @@ module GitGameShow
         # Add player to the game
         @player_manager.add_player(player_name, ws)
 
+        # Update the sidebar to show the new player
+        @server_handler.instance_variable_get(:@sidebar)&.update_player_list(@player_manager.player_names, @player_manager.scores)
+
         # Include current player list in the response
         response.merge!(
           success: true,
@@ -107,7 +113,7 @@ module GitGameShow
         }, exclude: player_name)
 
         # Log message for player joining
-        @renderer.log_message("ud83dudfe2 #{player_name} has joined the game", :green)
+        @renderer.log_message("🟢 #{player_name} has joined the game", :green)
       end
 
       ws.send(response.to_json)
@@ -151,18 +157,18 @@ module GitGameShow
 
         # Log the timeout
         truncated_name = player_name.length > 15 ? "#{player_name[0...12]}..." : player_name
-        @renderer.log_message("#{truncated_name} timed out after #{time_taken.round(2)}s u23f0", :yellow)
+        @renderer.log_message("#{truncated_name} timed out after #{time_taken.round(2)}s ⏰", :yellow)
       else
         # Regular answer processing
         # For ordering quizzes, we'll calculate points in evaluate_answers
         if current_question[:question_type] == 'ordering'
           # Just store the answer and time, points will be calculated in evaluate_answers
           correct = false # Will be properly set during evaluation
-          
+
           # Get the mini-game to evaluate this answer for points
           mini_game = @game_state.current_mini_game
           points = mini_game.evaluate_answers(
-            current_question, 
+            current_question,
             {player_name => {answer: answer, time_taken: time_taken}}
           ).values.first[:points]
         else
@@ -191,9 +197,9 @@ module GitGameShow
         # Log this answer - ensure the name is not too long
         truncated_name = player_name.length > 15 ? "#{player_name[0...12]}..." : player_name
         if current_question[:question_type] == 'ordering'
-          @renderer.log_message("#{truncated_name} submitted ordering in #{time_taken.round(2)}s u23f1ufe0f", :cyan)
+          @renderer.log_message("#{truncated_name} submitted ordering in #{time_taken.round(2)}s ⏱️", :cyan)
         else
-          @renderer.log_message("#{truncated_name} answered in #{time_taken.round(2)}s: #{correct ? "Correct u2713" : "Wrong u2717"}", correct ? :green : :red)
+          @renderer.log_message("#{truncated_name} answered in #{time_taken.round(2)}s: #{correct ? "Correct ✓" : "Wrong ✗"}", correct ? :green : :red)
         end
       end
 
@@ -217,8 +223,8 @@ module GitGameShow
       # For ordering quizzes, we can't determine correctness immediately
       if question[:question_type] == 'ordering'
         feedback[:correct] = nil # nil means "scoring in progress"
-        feedback[:points] = nil
-        feedback[:message] = "Ordering submitted. Points will be calculated at the end of the round."
+        # Keep the points value that was calculated earlier
+        feedback[:message] = "Ordering submitted. Points calculated based on your ordering."
       end
 
       ws.send(feedback.to_json)

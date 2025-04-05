@@ -53,7 +53,7 @@ module GitGameShow
         # Show scrolling indicator if needed
         if players.size > max_visible_players
           print @cursor.move_to(@main_width + 2, 4)
-          print "Showing #{max_visible_players} of #{players.size}:".colorize(:light_yellow)
+          print "Showing #{max_visible_players} of #{players.size}:".colorize(:yellow)
         end
 
         # Determine which players to display (show top N players by score)
@@ -75,9 +75,9 @@ module GitGameShow
           prefix = ""
           if scores.any?
             prefix = case index
-                     when 0 then "ud83eudd47 "
-                     when 1 then "ud83eudd48 "
-                     when 2 then "ud83eudd49 "
+                     when 0 then "🥇 "
+                     when 1 then "🥈 "
+                     when 2 then "🥉 "
                      else "#{index + 1}. "
                      end
           else

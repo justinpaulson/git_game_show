@@ -147,15 +147,15 @@ module GitGameShow
       # Display instructions and welcome information
       puts "\n"
       puts "  Welcome to Git Game Show!".colorize(:yellow)
-      puts "  Test your knowledge about Git and your team's commits through fun mini-games.".colorize(:light_white)
+      puts "  Test your knowledge about Git and your team's commits through fun mini-games.".colorize(:light_black)
       puts "\n"
       puts "  🔹 Instructions:".colorize(:light_blue)
-      puts "    • The game consists of multiple rounds with different question types".colorize(:light_white)
-      puts "    • Each round has a theme based on Git commit history".colorize(:light_white)
-      puts "    • Answer questions as quickly as possible for maximum points".colorize(:light_white)
-      puts "    • The player with the most points at the end wins!".colorize(:light_white)
+      puts "    • The game consists of multiple rounds with different question types".colorize(:light_black)
+      puts "    • Each round has a theme based on Git commit history".colorize(:light_black)
+      puts "    • Answer questions as quickly as possible for maximum points".colorize(:light_black)
+      puts "    • The player with the most points at the end wins!".colorize(:light_black)
       puts "\n"
-      puts "  🔹 Status: Waiting for the host to start the game...".colorize(:light_yellow)
+      puts "  🔹 Status: Waiting for the host to start the game...".colorize(:yellow)
       puts "\n"
 
       # Draw player section in a box
@@ -207,7 +207,7 @@ module GitGameShow
 
       puts "\n"
       puts "  When the game starts, you'll see questions appear automatically.".colorize(:light_black)
-      puts "  Get ready to test your Git knowledge!".colorize(:light_yellow)
+      puts "  Get ready to test your Git knowledge!".colorize(:yellow)
       puts "\n"
     end
 
@@ -508,7 +508,7 @@ module GitGameShow
       color = if seconds <= 5
                 :red
               elsif seconds <= 10
-                :light_yellow
+                :yellow
               else
                 :green
               end
@@ -860,7 +860,7 @@ module GitGameShow
         # Show bonus points details if applicable
         if data['points'] > 10 # More than base points
           bonus = data['points'] - 10
-          puts "   🎉 SPEED BONUS: +#{bonus} points for fast answer!".colorize(:light_yellow)
+          puts "   🎉 SPEED BONUS: +#{bonus} points for fast answer!".colorize(:yellow)
         end
       else
         if data['correct_answer'].is_a?(Array)
@@ -993,7 +993,7 @@ module GitGameShow
           output = "   #{rank_display} #{player_str.ljust(20)} #{score} points"
 
           if player == name
-            puts output.colorize(:light_yellow)
+            puts output.colorize(:yellow)
           else
             puts output.colorize(:light_blue)
           end
@@ -1038,7 +1038,7 @@ module GitGameShow
         case position
         when 1
           position_str = "🥇 #{position_str}"
-          puts "   #{position_str.ljust(5)} #{player_str.ljust(25)} #{score_str}".colorize(:light_yellow)
+          puts "   #{position_str.ljust(5)} #{player_str.ljust(25)} #{score_str}".colorize(:yellow)
         when 2
           position_str = "🥈 #{position_str}"
           puts "   #{position_str.ljust(5)} #{player_str.ljust(25)} #{score_str}".colorize(:light_blue)
@@ -1095,9 +1095,9 @@ module GitGameShow
 
       winner_is_you = winner == name
       if winner_is_you
-        puts "🎉 Congratulations! You won! 🎉".center(@game_width).colorize(:light_yellow)
+        puts "🎉 Congratulations! You won! 🎉".center(@game_width).colorize(:yellow)
       else
-        puts "Winner: #{winner}! 🏆".center(@game_width).colorize(:light_yellow)
+        puts "Winner: #{winner}! 🏆".center(@game_width).colorize(:yellow)
       end
 
       puts ""
@@ -1126,7 +1126,7 @@ module GitGameShow
         when 1
           position_str = "🥇 #{position_str}"
           left_string = (position_str.rjust(5) + ' ' + player_str).ljust(scores_width - score_str.length)
-          puts "#{left_string}#{score_str}".center(@game_width).colorize(:light_yellow)
+          puts "#{left_string}#{score_str}".center(@game_width).colorize(:yellow)
         when 2
           position_str = "🥈 #{position_str}"
           left_string = (position_str.rjust(5) + ' ' + player_str).ljust(scores_width - score_str.length)

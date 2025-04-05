@@ -37,7 +37,7 @@ module GitGameShow
       @renderer.draw_welcome_banner
       @renderer.draw_join_link(@join_link) if @join_link
       @sidebar.draw_header
-      @sidebar.update_player_list(@player_manager.players, @player_manager.scores)
+      @sidebar.update_player_list(@player_manager.player_names, @player_manager.scores)
       @renderer.draw_command_prompt
 
       # Start event machine
@@ -222,7 +222,7 @@ module GitGameShow
       return unless evaluation
 
       # Update player list in sidebar to reflect new scores
-      @sidebar.update_player_list(@player_manager.players, @player_manager.scores)
+      @sidebar.update_player_list(@player_manager.player_names, @player_manager.scores)
 
       # Broadcast results to all players
       broadcast_message({
@@ -281,7 +281,7 @@ module GitGameShow
       @player_manager.reset_scores
 
       # Update sidebar
-      @sidebar.update_player_list(@player_manager.players, @player_manager.scores)
+      @sidebar.update_player_list(@player_manager.player_names, @player_manager.scores)
       @renderer.log_message("Game ended! Type 'start' to play again or 'exit' to quit.", :cyan)
     end
 

@@ -86,7 +86,7 @@ module GitGameShow
       sidebar = @server_handler&.instance_variable_get(:@sidebar)
 
       if player_manager && sidebar
-        sidebar.update_player_list(player_manager.players, player_manager.scores)
+        sidebar.update_player_list(player_manager.player_names, player_manager.scores)
       end
     end
   end

@@ -95,14 +95,27 @@ Parameters:
 
 You can also simply run `git-game-show` and select "Join a game" from the interactive menu.
 
+### Quick Start
+
+```bash
+# Start the game (runs in the current git repository)
+git-game-show
+
+# Select "Host a game" from the menu
+# Share the displayed join link with other players
+# Wait for players to join, then start the game
+```
+
 ## Mini-Games
 
 The game includes several mini-games based on Git repository data:
 
 1. **Author Quiz**: Guess which team member made each commit
-2. **Commit Message Quiz**: Match the commit message to the right changed file
-3. **Commit Timeline**: Put commits in chronological order
-4. **Complete the Commit**: Complete the missing part of commit messages
+2. **Blame Game**: Identify which developer committed a specific line of code
+3. **Branch Detective**: Determine which branch a commit belongs to
+4. **Commit Message Completion**: Complete the missing part of commit messages
+5. **Date Ordering Quiz**: Put commits in chronological order
+6. **File Quiz**: Match commit messages to the correct modified file
 
 ## Requirements
 

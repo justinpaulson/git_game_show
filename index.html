@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Game Show - A Multiplayer Git Trivia Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3366cc; /* Blue color from "SHOW" in the image */
+            --secondary: rgb(247, 44, 8); /* Red color from "GIT" in the image - keeping as is */
+            --accent: #5cb85c; /* Green color from "GAME" in the image */
+            --light: #f6f8fa;
+            --dark: #000000;
+            --success: #2ea44f;
+            --code-bg: #1e1e1e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: var(--light);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: var(--dark);
+            color: white;
+            padding: 80px 0 60px;
+            text-align: center;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+
+        .logo .git {
+            color: var(--secondary); /* Red for "Git" */
+        }
+
+        .logo .game {
+            color: var(--accent); /* Green for "Game" */
+        }
+
+        .logo .show {
+            color: var(--primary); /* Blue for "Show" */
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            opacity: 0.9;
+        }
+
+        .btn {
+                    display: inline-flex;
+                    align-items: center;
+                    background-color: var(--secondary);
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+                    margin: 10px;
+                }
+
+                .btn svg {
+                    margin-right: 8px;
+                    width: 20px;
+                    height: 20px;
+                }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-rubygems {
+            background-color: #cc3534; /* RubyGems color */
+        }
+
+        .btn-github {
+            background-color: #24292e; /* GitHub color */
+        }
+
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        section {
+            padding: 60px 0;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--secondary);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .feature:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .games {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .game:hover {
+            transform: translateY(-5px);
+        }
+
+        .game::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background-color: var(--primary);
+        }
+
+        .game-title {
+            font-weight: 600;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--secondary);
+        }
+
+        .terminal {
+            background-color: var(--code-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            overflow-x: auto;
+        }
+
+        .terminal pre {
+            font-family: 'Fira Code', monospace;
+            color: white;
+            line-height: 1.5;
+        }
+
+        .terminal .prompt {
+            color: var(--success);
+        }
+
+        .terminal .command {
+            color: white;
+        }
+
+        .terminal .output {
+            color: #a0a0a0;
+        }
+
+        .installation {
+            background-color: var(--light);
+            padding: 60px 0;
+        }
+
+        .usage {
+            background-color: white;
+            padding: 60px 0;
+        }
+
+        .cta {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            text-align: center;
+            padding: 80px 0;
+            clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 100%);
+        }
+
+        .cta h2 {
+            color: white;
+        }
+
+        .cta p {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            opacity: 0.9;
+        }
+
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .screenshot {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin: 40px 0;
+        }
+
+        .demo {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin: 40px 0;
+        }
+
+        .demo-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .demo-dots {
+            display: flex;
+            margin-right: 15px;
+        }
+
+        .demo-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .demo-dot:nth-child(1) {
+            background-color: #ff5f56;
+        }
+
+        .demo-dot:nth-child(2) {
+            background-color: #ffbd2e;
+        }
+
+        .demo-dot:nth-child(3) {
+            background-color: #27c93f;
+        }
+
+        .demo-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .demo-content {
+            background-color: var(--code-bg);
+            border-radius: 6px;
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
+            color: white;
+            overflow-x: auto;
+        }
+
+        .highlight {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .question {
+            color: var(--primary);
+        }
+
+        .answer {
+            color: #2ea44f;
+        }
+
+        .incorrect {
+            color: #f05033;
+        }
+
+        .player {
+            color: var(--primary);
+        }
+
+        .commit {
+            color: #ffbd2e;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .tagline {
+                font-size: 1.2rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .features, .games {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo"><span class="git">Git</span> <span class="game">Game</span> <span class="show">Show</span></h1>
+            <p class="tagline">Transform your Git repository into an interactive multiplayer trivia game for team building and fun!</p>
+            <div>
+                <a href="https://rubygems.org/gems/git_game_show" class="btn btn-rubygems">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                        <path d="M12 0L1.5 6v12L12 24l10.5-6V6L12 0zm0 3l7.5 4.5v9L12 21l-7.5-4.5v-9L12 3z"/>
+                        <path d="M12 7l-4 2.5L12 14l4-4.5z"/>
+                    </svg>
+                    RubyGems
+                </a>
+                <a href="https://github.com/justinpaulson/git_game_show" class="btn btn-github">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                    </svg>
+                    GitHub
+                </a>
+                <a href="#installation" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    Get Started
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <section id="overview">
+        <div class="container">
+            <h2>What is Git Game Show?</h2>
+            <p>Git Game Show transforms your project's Git commit history into a live, multiplayer trivia game. One user hosts a session, other players join remotely, and the system rotates through rounds of different question-based "mini-games," awarding points and declaring a final winner.</p>
+
+            <div class="demo">
+                <div class="demo-header">
+                    <div class="demo-dots">
+                        <div class="demo-dot"></div>
+                        <div class="demo-dot"></div>
+                        <div class="demo-dot"></div>
+                    </div>
+                    <div class="demo-title">git-game-show</div>
+                </div>
+                <div class="demo-content">
+                    <p><span class="highlight">Welcome to Git Game Show!</span></p>
+                    <p>&nbsp;</p>
+                    <p><span class="player">Alice</span> has joined the game!</p>
+                    <p><span class="player">Bob</span> has joined the game!</p>
+                    <p><span class="player">Charlie</span> has joined the game!</p>
+                    <p>&nbsp;</p>
+                    <p>Starting Round 1: <span class="highlight">Author Quiz</span></p>
+                    <p>&nbsp;</p>
+                    <p><span class="question">Who authored this commit?</span></p>
+                    <p>&nbsp;</p>
+                    <p>"<span class="commit">Add user authentication features</span>"</p>
+                    <p>&nbsp;</p>
+                    <p>abc123d (Feb 15, 2025)</p>
+                    <p>&nbsp;</p>
+                    <p>1. Bob</p>
+                    <p>2. <span class="answer">Alice</span> ← Correct!</p>
+                    <p>3. Charlie</p>
+                    <p>4. David</p>
+                </div>
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">🎮</div>
+                    <h3>Fun Team Building</h3>
+                    <p>Engage your development team with a fun, interactive game that tests their knowledge of the project's history and encourages collaboration.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Multiple Mini-Games</h3>
+                    <p>Enjoy a variety of question types based on Git history, keeping the gameplay fresh and engaging throughout multiple rounds.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Remote Play</h3>
+                    <p>Play with team members anywhere in the world using the built-in networking capabilities, perfect for distributed teams.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="mini-games" style="background-color: var(--light);">
+        <div class="container">
+            <h2>Mini-Games</h2>
+            <p>Git Game Show includes several mini-games based on your repository's commit history:</p>
+
+            <div class="games">
+                <div class="game">
+                    <h3 class="game-title">Author Quiz</h3>
+                    <p>Guess which team member made each commit based on the commit message and date.</p>
+                </div>
+                <div class="game">
+                    <h3 class="game-title">Blame Game</h3>
+                    <p>Identify which developer committed a specific line of code in your repository.</p>
+                </div>
+                <div class="game">
+                    <h3 class="game-title">Branch Detective</h3>
+                    <p>Determine which branch a commit belongs to based on commit information.</p>
+                </div>
+                <div class="game">
+                    <h3 class="game-title">Commit Message Completion</h3>
+                    <p>Complete the missing part of commit messages from your repository's history.</p>
+                </div>
+                <div class="game">
+                    <h3 class="game-title">Date Ordering Quiz</h3>
+                    <p>Put commits in chronological order to test your knowledge of project timeline.</p>
+                </div>
+                <div class="game">
+                    <h3 class="game-title">File Quiz</h3>
+                    <p>Match commit messages to the correct modified file in your repository.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="installation">
+        <div class="container">
+            <h2>Installation</h2>
+            <p>Getting started with Git Game Show is easy! Install it as a Ruby gem:</p>
+
+            <div class="terminal">
+                <pre><span class="prompt">$</span> <span class="command">gem install git_game_show</span></pre>
+            </div>
+
+            <p>This will install the <code>git-game-show</code> command globally on your system.</p>
+
+            <p>If you encounter permission issues or the command is not found:</p>
+
+            <div class="terminal">
+                <pre><span class="prompt">$</span> <span class="command">chmod +x $(gem which git_game_show | sed 's/lib\/git_game_show.rb/bin\/git-game-show/')</span>
+
+<span class="prompt"># For rbenv users</span>
+<span class="prompt">$</span> <span class="command">rbenv rehash</span>
+
+<span class="prompt"># For asdf users</span>
+<span class="prompt">$</span> <span class="command">asdf reshim ruby</span></pre>
+            </div>
+        </div>
+    </section>
+
+    <section id="usage" style="background-color: var(--light);">
+        <div class="container">
+            <h2>How to Play</h2>
+
+            <h3>Quick Start</h3>
+            <div class="terminal">
+                <pre><span class="prompt">$</span> <span class="command">git-game-show</span>
+<span class="output">
+     ██████╗ ██╗████████╗     ██████╗  █████╗ ███╗   ███╗███████╗
+    ██╔════╝ ██║╚══██╔══╝    ██╔════╝ ██╔══██╗████╗ ████║██╔════╝
+    ██║  ███╗██║   ██║       ██║  ███╗███████║██╔████╔██║█████╗
+    ██║   ██║██║   ██║       ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝
+    ╚██████╔╝██║   ██║       ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗
+     ╚═════╝ ╚═╝   ╚═╝        ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝
+                  █████╗ ██╗  ██╗ ██████╗ ██╗    ██╗
+                 ██╔═══╝ ██║  ██║██╔═══██╗██║    ██║
+                 ███████╗███████║██║   ██║██║ █╗ ██║
+                 ╚════██║██╔══██║██║   ██║██║███╗██║
+                 ██████╔╝██║  ██║╚██████╔╝╚███╔███╔╝
+                 ╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│                   Welcome to Git Game Show! version 0.2.2                    │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Test your team's knowledge with fun mini games based on git commit history.  │
+│                                                                              │
+│ Choose to host a new game or join an existing one.                           │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+ (Press ↑/↓ arrow to move and Enter to select)
+‣ Host a new game
+  Join a game
+  Check for updates
+  Exit
+</span></pre>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Play?</h2>
+            <p>Transform your Git repository into a fun, interactive game show and bring your team together!</p>
+            <a href="https://github.com/justinpaulson/git_game_show" class="btn btn-primary">Get Started Now</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Git Game Show v0.2.2 | MIT License</p>
+            <p>Created by <a href="https://github.com/justinpaulson">Justin Paulson</a> | Inspired by <a href="https://github.com/jsomers/git-game">git-game</a></p>
+        </div>
+    </footer>
+</body>
+</html>

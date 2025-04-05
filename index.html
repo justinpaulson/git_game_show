@@ -57,7 +57,7 @@
             color: var(--secondary); /* Red for "Git" */
         }
 
-        .logo .game {
+        .logo .game-logo {
             color: var(--accent); /* Green for "Game" */
         }
 
@@ -164,6 +164,16 @@
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
             margin-top: 40px;
+        }
+
+        .game {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
         .game:hover {
@@ -364,7 +374,7 @@
 <body>
     <header>
         <div class="container">
-            <h1 class="logo"><span class="git">Git</span> <span class="game">Game</span> <span class="show">Show</span></h1>
+            <h1 class="logo"><span class="git">Git</span> <span class="game-logo">Game</span> <span class="show">Show</span></h1>
             <p class="tagline">Transform your Git repository into an interactive multiplayer trivia game for team building and fun!</p>
             <div>
                 <a href="https://rubygems.org/gems/git_game_show" class="btn btn-rubygems">

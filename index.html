@@ -137,11 +137,21 @@
         .green {
             color: var(--success);
         }
+
         .yellow {
             color: #ffbd2e;
         }
+
         .light-blue {
             color: #1e90ff;
+        }
+
+        .red {
+            color: #f05033;
+        }
+
+        .blue {
+            color: #007bff;
         }
 
         .secondary-text {
@@ -211,12 +221,70 @@
             color: var(--secondary);
         }
 
+        .question-title-banner {
+            display: flex;
+            justify-content: center;
+        }
+
         .terminal {
             background-color: var(--code-bg);
-            border-radius: 8px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
             padding: 20px;
-            margin: 30px 0;
             overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .terminal-container {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: #e4e4e4;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border-bottom: 1px solid #d1d1d1;
+        }
+
+        .terminal-dots {
+            display: flex;
+            margin-right: 15px;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 6px;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        }
+
+        .terminal-dot:nth-child(1) {
+            background-color: #ff5f56;
+        }
+
+        .terminal-dot:nth-child(2) {
+            background-color: #ffbd2e;
+        }
+
+        .terminal-dot:nth-child(3) {
+            background-color: #27c93f;
+        }
+
+        .terminal-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: #333;
+            flex-grow: 1;
+            text-align: center;
+            margin-right: 30px; /* Offset for the dots to center the text */
         }
 
         .terminal pre {
@@ -239,11 +307,6 @@
 
         .installation {
             background-color: var(--light);
-            padding: 60px 0;
-        }
-
-        .usage {
-            background-color: white;
             padding: 60px 0;
         }
 
@@ -296,10 +359,22 @@
             margin: 40px 0;
         }
 
+        #mini-game-carousel {
+            margin: 40px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
         .demo-header {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
+            padding: 10px 15px;
+            background-color: #e4e4e4;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border-bottom: 1px solid #d1d1d1;
+            margin-bottom: 0;
         }
 
         .demo-dots {
@@ -312,6 +387,7 @@
             height: 12px;
             border-radius: 50%;
             margin-right: 6px;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
         }
 
         .demo-dot:nth-child(1) {
@@ -329,16 +405,27 @@
         .demo-title {
             font-family: 'Fira Code', monospace;
             font-size: 0.9rem;
-            color: #666;
+            color: #333;
+            flex-grow: 1;
+            text-align: center;
+            margin-right: 30px; /* Offset for the dots to center the text */
         }
 
         .demo-content {
             background-color: var(--code-bg);
-            border-radius: 6px;
-            padding: 20px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
             font-family: 'Fira Code', monospace;
             color: white;
             overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .carousel-content {
+            padding-top: 20px;
+            padding: 20px;
         }
 
         .highlight {
@@ -384,6 +471,28 @@
             }
         }
     </style>
+    <style>
+        /* Additional styles for carousel */
+        .carousel-item {
+            display: none;
+        }
+
+        .carousel-item:first-child {
+            display: block;
+        }
+
+        .game {
+            cursor: pointer;
+        }
+
+        .game:hover {
+            transform: translateY(-5px);
+        }
+
+        #mini-game-carousel {
+            margin-top: 40px;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -419,32 +528,46 @@
             <h2>What is Git Game Show?</h2>
             <p>Git Game Show transforms your project's Git commit history into a live, multiplayer trivia game. One user hosts a session, other players join remotely, and the system rotates through rounds of different question-based "mini-games," awarding points and declaring a final winner.</p>
 
-            <div class="demo">
-                <div class="demo-header">
-                    <div class="demo-dots">
-                        <div class="demo-dot"></div>
-                        <div class="demo-dot"></div>
-                        <div class="demo-dot"></div>
+            <div class="terminal-container">
+                <div class="terminal-header">
+                    <div class="terminal-dots">
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
                     </div>
-                    <div class="demo-title">git-game-show</div>
+                    <div class="terminal-title">git-game-show</div>
                 </div>
-                <div class="demo-content">
-                    <p><pre><span class="light-blue">            ╭────────────────────────────────────────╮
-            │            Question 1 of 5             │
-            ╰────────────────────────────────────────╯</span></pre></p>
-                    <p><pre><span class="light-blue">  Complete this commit message:
+                <div class="terminal">
+                    <pre>
+      <span class="red">██████╗ ██╗████████╗</span>     <span class="green">██████╗  █████╗ ███╗   ███╗███████╗</span>
+     <span class="red">██╔════╝ ██║╚══██╔══╝</span>    <span class="green">██╔════╝ ██╔══██╗████╗ ████║██╔════╝</span>
+     <span class="red">██║  ███╗██║   ██║</span>       <span class="green">██║  ███╗███████║██╔████╔██║█████╗</span>
+     <span class="red">██║   ██║██║   ██║</span>       <span class="green">██║   ██║██╔══██║██║╚██╔╝██║██╔══╝</span>
+     <span class="red">╚██████╔╝██║   ██║</span>       <span class="green">╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗</span>
+      <span class="red">╚═════╝ ╚═╝   ╚═╝</span>        <span class="green">╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝</span>
+                  <span class="blue">█████╗ ██╗  ██╗ ██████╗ ██╗    ██╗</span>
+                 <span class="blue">██╔═══╝ ██║  ██║██╔═══██╗██║    ██║</span>
+                 <span class="blue">███████╗███████║██║   ██║██║ █╗ ██║</span>
+                 <span class="blue">╚════██║██╔══██║██║   ██║██║███╗██║</span>
+                 <span class="blue">██████╔╝██║  ██║╚██████╔╝╚███╔███╔╝</span>
+                  <span class="blue">╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝</span>
 
-    "Merge pull request #1 from ________ ________"
-    Commit: da0edeb8 (Apr 04, 2025)</span></pre></p>
-                    <p><pre><span class="yellow">    Choose your answer:</span></pre></p>
-                    <p><pre><span class="green">    ‣ add games</span>
-      update readme
-      justinpaulson/refactor refactor
-      update index</pre></p>
-                    <p>&nbsp;</p>
-                    <p><pre><span class="green">⏱️  Time remaining: 17 seconds [█████████████████████████     ]</span></pre></p>
-                </div>
-            </div>
+<span class="light-blue">╭──────────────────────────────────────────────────────────────────────────────╮
+│                   Welcome to Git Game Show! version 0.2.2                    │
+├──────────────────────────────────────────────────────────────────────────────┤</span>
+<span class="light-blue">│</span> Test your team's knowledge with fun mini games based on git commit history.  <span class="light-blue">│</span>
+<span class="light-blue">│                                                                              │</span>
+<span class="light-blue">│</span> Choose to host a new game or join an existing one.                           <span class="light-blue">│
+╰──────────────────────────────────────────────────────────────────────────────╯</span>
+
+ (Press ↑/↓ arrow to move and Enter to select)
+<span class="green">‣ Host a new game</span>
+  Join a game
+  Check for updates
+  Exit
+</span></pre>
+</div>
+</div>
 
             <div class="features">
                 <div class="feature">
@@ -465,34 +588,224 @@
             </div>
         </div>
     </section>
-
     <section id="mini-games" style="background-color: var(--light);">
         <div class="container">
             <h2>Mini-Games</h2>
             <p>Git Game Show includes several mini-games based on your repository's commit history:</p>
+            <div id="mini-game-carousel">
+                <!-- Commit Message Completion -->
+                <div class="demo-content carousel-item" data-game="commit-message-completion">
+                    <div class="demo-header">
+                        <div class="demo-dots">
+                            <div class="demo-dot"></div>
+                            <div class="demo-dot"></div>
+                            <div class="demo-dot"></div>
+                        </div>
+                        <div class="demo-title">commit-message-completion</div>
+                    </div>
+                    <div class="carousel-content">
+                        <p><pre class="question-title-banner"><span class="light-blue">╭────────────────────────────────────────╮
+│            Question 1 of 5             │
+╰────────────────────────────────────────╯</span></pre></p>
+                        <p><pre><span class="light-blue">  Complete this commit message:
 
+    "Merge pull request #1 from ________ ________"
+    Commit: da0edeb8 (Apr 04, 2025)</span></pre></p>
+                        <p><pre><span class="yellow">    Choose your answer:</span></pre></p>
+                        <p><pre><span class="green">    ‣ add games</span>
+      update readme
+      justinpaulson/refactor refactor
+      update index
+    </pre></p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p><pre><span class="green">⏱️  Time remaining: 17 seconds</span> [█████████████████████████     ]</pre></p>
+                    </div>
+                </div>
+                <!-- Date Ordering Quiz -->
+                <div class="demo-content carousel-item" data-game="date-ordering-quiz">
+                    <div class="demo-header">
+                        <div class="demo-dots">
+                            <div class="demo-dot"></div>
+                            <div class="demo-dot"></div>
+                            <div class="demo-dot"></div>
+                        </div>
+                        <div class="demo-title">date-ordering-quiz</div>
+                    </div>
+                    <div class="carousel-content">
+                        <p><pre class="question-title-banner"><span class="light-blue">╭────────────────────────────────────────╮
+│            Question 1 of 5             │
+╰────────────────────────────────────────╯</span></pre></p>
+                        <p><pre><span class="light-blue">  Put these commits in chronological order (oldest to newest):</span></pre></p>
+                        <p><pre><span class="yellow">  Put in order from oldest (1) to newest (4)</span></pre></p>
+                        <p><pre><span class="green">  → 1. add index page (0763dab)</span>
+    2. update readme (a291aac)
+    3. Bump version to 0.1.2 (88ffefb)
+    4. v0.2.1 (9871930)
+    Submit Answer
+
+</pre></p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p><pre><span class="red">⏱️  Time remaining:  3 seconds</span> [████                          ]</pre></p>
+                    </div>
+                </div>
+                <!-- Author Quiz -->
+                <div class="demo-content carousel-item" data-game="author-quiz">
+                    <div class="demo-header">
+                        <div class="demo-dots">
+                            <div class="demo-dot"></div>
+                            <div class="demo-dot"></div>
+                            <div class="demo-dot"></div>
+                        </div>
+                        <div class="demo-title">author-quiz</div>
+                    </div>
+                    <div class="carousel-content">
+                        <p><pre class="question-title-banner"><span class="light-blue">╭────────────────────────────────────────╮
+│            Question 1 of 5             │
+╰────────────────────────────────────────╯</span></pre></p>
+                        <p><pre><span class="light-blue">  Who authored this commit?
+
+    "Sample commit message #1"
+
+    Commit: abc1230 (Jan 1, 2025)</span></pre></p>
+                        <p><pre><span class="yellow">    Choose your answer:</span></pre></p>
+                        <p><pre><span class="green">    ‣ Emma</span>
+      Charlie
+      David
+      Alice</pre></p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p><pre><span class="yellow">⏱️  Time remaining:  8 seconds</span> [████████████                  ]</pre></p>
+                    </div>
+                </div>
+                <!-- Branch Detective -->
+                <div class="demo-content carousel-item" data-game="branch-detective">
+                    <div class="demo-header">
+                        <div class="demo-dots">
+                            <div class="demo-dot"></div>
+                            <div class="demo-dot"></div>
+                            <div class="demo-dot"></div>
+                        </div>
+                        <div class="demo-title">branch-detective</div>
+                    </div>
+                    <div class="carousel-content">
+                        <p><pre class="question-title-banner"><span class="light-blue">╭────────────────────────────────────────╮
+│            Question 1 of 5             │
+╰────────────────────────────────────────╯</span></pre></p>
+                        <p><pre><span class="light-blue">  Which branch was this commit originally made on?
+
+    "[SAMPLE] Add user authentication flow"
+
+    Commit: a1b2c3d (by Jane Doe on 2023-05-15 14:30:22)</span></pre></p>
+                        <p><pre><span class="yellow">    Choose your answer:</span></pre></p>
+                        <p><pre><span class="green">    ‣ develop</span>
+      feature/user-auth
+      staging
+      bugfix/login</pre></p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p><pre><span class="green">⏱️  Time remaining: 12 seconds</span> [██████████████████            ]</pre></p>
+                    </div>
+                </div>
+                <!-- File Quiz -->
+                <div class="demo-content carousel-item" data-game="file-quiz">
+                    <div class="demo-header">
+                        <div class="demo-dots">
+                            <div class="demo-dot"></div>
+                            <div class="demo-dot"></div>
+                            <div class="demo-dot"></div>
+                        </div>
+                        <div class="demo-title">file-quiz</div>
+                    </div>
+                    <div class="carousel-content">
+                        <p><pre class="question-title-banner"><span class="light-blue">╭────────────────────────────────────────╮
+│            Question 1 of 5             │
+╰────────────────────────────────────────╯</span></pre></p>
+                        <p><pre><span class="light-blue">  Which file was most likely changed in this commit?
+
+    "refactored logic on the games with user answers"
+
+    Commit: ca6a55e (Mar 27, 2025)</span></pre></p>
+                        <p><pre><span class="yellow">    Choose your answer:</span></pre></p>
+                        <p><pre>      lib/git_game_show.rb
+      mini_games/branch_detective.rb
+<span class="green">    ‣ mini_games/blame_game.rb</span>
+      mini_games/commit_message_completion.rb</pre></p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p>&nbsp;</p>
+                        <p><pre><span class="red">⏱️  Time remaining:  5 seconds</span> [██████████                    ]</pre></p>
+                    </div>
+                </div>
+                <!-- Blame Game -->
+                <div class="demo-content carousel-item" data-game="blame-game">
+                    <div class="demo-header">
+                        <div class="demo-dots">
+                            <div class="demo-dot"></div>
+                            <div class="demo-dot"></div>
+                            <div class="demo-dot"></div>
+                        </div>
+                        <div class="demo-title">blame-game</div>
+                    </div>
+                    <div class="carousel-content">
+                        <p><pre class="question-title-banner"><span class="light-blue">╭────────────────────────────────────────╮
+│            Question 1 of 5             │
+╰────────────────────────────────────────╯</span></pre></p>
+                        <p><pre><span class="light-blue">  Who committed the highlighted line of code on 2024-03-11? (SAMPLE)
+
+    Code Context:
+    File: main.rb (SAMPLE)
+
+    1: def initialize(options = {})
+    2:   @logger = options[:logger] || Logger.new(STDOUT)
+    3:   @config = load_configuration
+    > 4:   @connections = []
+    5:   @active = false
+    6:   setup_signal_handlers
+    7: end</span></pre></p>
+                        <p><pre><span class="yellow">    Choose your answer:</span></pre></p>
+                        <p><pre><span class="green">    ‣ Bob</span>
+      Alice
+      Charlie
+      Emma</pre></p>
+                        <p>&nbsp;</p>
+                        <p><pre><span class="green">⏱️  Time remaining: 15 seconds</span> [██████████████████████        ]</pre></p>
+                    </div>
+                </div>
+            </div>
             <div class="games">
-                <div class="game">
+                <div class="game" data-game="author-quiz">
                     <h3 class="game-title">Author Quiz</h3>
                     <p>Guess which team member made each commit based on the commit message and date.</p>
                 </div>
-                <div class="game">
+                <div class="game" data-game="blame-game">
                     <h3 class="game-title">Blame Game</h3>
                     <p>Identify which developer committed a specific line of code in your repository.</p>
                 </div>
-                <div class="game">
+                <div class="game" data-game="branch-detective">
                     <h3 class="game-title">Branch Detective</h3>
                     <p>Determine which branch a commit belongs to based on commit information.</p>
                 </div>
-                <div class="game">
+                <div class="game" data-game="commit-message-completion">
                     <h3 class="game-title">Commit Message Completion</h3>
                     <p>Complete the missing part of commit messages from your repository's history.</p>
                 </div>
-                <div class="game">
+                <div class="game" data-game="date-ordering-quiz">
                     <h3 class="game-title">Date Ordering Quiz</h3>
                     <p>Put commits in chronological order to test your knowledge of project timeline.</p>
                 </div>
-                <div class="game">
+                <div class="game" data-game="file-quiz">
                     <h3 class="game-title">File Quiz</h3>
                     <p>Match commit messages to the correct modified file in your repository.</p>
                 </div>
@@ -505,61 +818,56 @@
             <h2>Installation</h2>
             <p>Getting started with Git Game Show is easy! Install it as a Ruby gem:</p>
 
-            <div class="terminal">
-                <pre><span class="prompt">$</span> <span class="command">gem install git_game_show</span></pre>
+            <div class="terminal-container">
+                <div class="terminal-header">
+                    <div class="terminal-dots">
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                    </div>
+                    <div class="terminal-title">terminal</div>
+                </div>
+                <div class="terminal">
+                    <pre><span class="prompt">$</span> <span class="command">gem install git_game_show</span></pre>
+                </div>
             </div>
+            <p></p>
+            <p>This will install the <code class="secondary-text">git-game-show</code> command globally on your system. To run:</p>
 
-            <p>This will install the <code class="secondary-text">git-game-show</code> command globally on your system.</p>
-
+            <div class="terminal-container">
+                <div class="terminal-header">
+                    <div class="terminal-dots">
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                    </div>
+                    <div class="terminal-title">terminal</div>
+                </div>
+                <div class="terminal">
+                    <pre><span class="prompt">$</span> <span class="command">git-game-show</span></pre>
+                </div>
+            </div>
+            <p></p>
             <p>If you encounter permission issues or the command is not found:</p>
 
-            <div class="terminal">
-                <pre><span class="prompt">$</span> <span class="command">chmod +x $(gem which git_game_show | sed 's/lib\/git_game_show.rb/bin\/git-game-show/')</span>
+            <div class="terminal-container">
+                <div class="terminal-header">
+                    <div class="terminal-dots">
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                        <div class="terminal-dot"></div>
+                    </div>
+                    <div class="terminal-title">terminal</div>
+                </div>
+                <div class="terminal">
+                    <pre><span class="prompt">$</span> <span class="command">chmod +x $(gem which git_game_show | sed 's/lib\/git_game_show.rb/bin\/git-game-show/')</span>
 
 <span class="prompt"># For rbenv users</span>
 <span class="prompt">$</span> <span class="command">rbenv rehash</span>
 
 <span class="prompt"># For asdf users</span>
 <span class="prompt">$</span> <span class="command">asdf reshim ruby</span></pre>
-            </div>
-        </div>
-    </section>
-
-    <section id="usage" style="background-color: var(--light);">
-        <div class="container">
-            <h2>How to Play</h2>
-
-            <h3>Quick Start</h3>
-            <div class="terminal">
-                <pre><span class="prompt">$</span> <span class="command">git-game-show</span>
-<span class="output">
-     ██████╗ ██╗████████╗     ██████╗  █████╗ ███╗   ███╗███████╗
-    ██╔════╝ ██║╚══██╔══╝    ██╔════╝ ██╔══██╗████╗ ████║██╔════╝
-    ██║  ███╗██║   ██║       ██║  ███╗███████║██╔████╔██║█████╗
-    ██║   ██║██║   ██║       ██║   ██║██╔══██║██║╚██╔╝██║██╔══╝
-    ╚██████╔╝██║   ██║       ╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗
-     ╚═════╝ ╚═╝   ╚═╝        ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝
-                  █████╗ ██╗  ██╗ ██████╗ ██╗    ██╗
-                 ██╔═══╝ ██║  ██║██╔═══██╗██║    ██║
-                 ███████╗███████║██║   ██║██║ █╗ ██║
-                 ╚════██║██╔══██║██║   ██║██║███╗██║
-                 ██████╔╝██║  ██║╚██████╔╝╚███╔███╔╝
-                 ╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚══╝╚══╝
-
-╭──────────────────────────────────────────────────────────────────────────────╮
-│                   Welcome to Git Game Show! version 0.2.2                    │
-├──────────────────────────────────────────────────────────────────────────────┤
-│ Test your team's knowledge with fun mini games based on git commit history.  │
-│                                                                              │
-│ Choose to host a new game or join an existing one.                           │
-╰──────────────────────────────────────────────────────────────────────────────╯
-
- (Press ↑/↓ arrow to move and Enter to select)
-‣ Host a new game
-  Join a game
-  Check for updates
-  Exit
-</span></pre>
+                </div>
             </div>
         </div>
     </section>
@@ -578,5 +886,77 @@
             <p>Created by <a href="https://github.com/justinpaulson">Justin Paulson</a> | Inspired by <a href="https://github.com/jsomers/git-game">git-game</a></p>
         </div>
     </footer>
+
+    <script>
+        // Carousel functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all carousel items
+            const carouselItems = document.querySelectorAll('.carousel-item');
+            let currentIndex = 0;
+            let carouselInterval;
+
+            // Function to show a specific carousel item
+            function showCarouselItem(index) {
+                // Hide all items
+                carouselItems.forEach(item => {
+                    item.style.display = 'none';
+                });
+
+                // Show the selected item
+                carouselItems[index].style.display = 'block';
+
+                // Update current index
+                currentIndex = index;
+            }
+
+            // Function to show next carousel item
+            function showNextCarouselItem() {
+                currentIndex = (currentIndex + 1) % carouselItems.length;
+                showCarouselItem(currentIndex);
+            }
+
+            // Function to find carousel item index by game type
+            function findCarouselItemIndex(gameType) {
+                for (let i = 0; i < carouselItems.length; i++) {
+                    if (carouselItems[i].getAttribute('data-game') === gameType) {
+                        return i;
+                    }
+                }
+                return 0; // Default to first item if not found
+            }
+
+            // Initialize carousel
+            showCarouselItem(0);
+
+            // Start automatic rotation
+            carouselInterval = setInterval(showNextCarouselItem, 3000);
+
+            // Add click event listeners to game cards
+            const gameCards = document.querySelectorAll('.game');
+            gameCards.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Get the game type from data attribute
+                    const gameType = this.getAttribute('data-game');
+                    console.log("Card clicked:", gameType);
+
+                    // Find the corresponding carousel item index
+                    const itemIndex = findCarouselItemIndex(gameType);
+
+                    // Clear the interval to stop automatic rotation
+                    clearInterval(carouselInterval);
+
+                    // Show the selected item
+                    showCarouselItem(itemIndex);
+
+                    // Restart automatic rotation after 5 seconds
+                    setTimeout(() => {
+                        carouselInterval = setInterval(showNextCarouselItem, 3000);
+                    }, 5000);
+                });
+            });
+        });
+    </script>
 </body>
 </html>

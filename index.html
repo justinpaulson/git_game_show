@@ -471,6 +471,102 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Tip Jar Button Styles */
+        .tipjar-button {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            padding: 0.75rem;
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            z-index: 1000;
+        }
+
+        .tipjar-button:hover {
+            background-color: #2563eb;
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 0.75rem 1rem;
+        }
+
+        .tipjar-button-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        .tipjar-button-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .tipjar-button-text {
+            white-space: nowrap;
+            max-width: 0;
+            overflow: hidden;
+            transition: max-width 0.3s ease, margin-left 0.3s ease;
+        }
+
+        .tipjar-button:hover .tipjar-button-text {
+            max-width: 200px;
+            margin-left: 0.25rem;
+        }
+
+        /* Coin falling animation */
+        .tipjar-coin-animation {
+            animation: tipjar-coin-drop 2s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        @keyframes tipjar-coin-drop {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            80% {
+                transform: translateY(7px) rotate(180deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(9px) rotate(180deg);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive Design for Tip Jar */
+        @media (max-width: 640px) {
+            .tipjar-button {
+                padding: 0.625rem;
+                font-size: 0.75rem;
+            }
+
+            .tipjar-button:hover {
+                padding: 0.625rem 0.875rem;
+            }
+            
+            .tipjar-button-icon {
+                width: 1.25rem;
+                height: 1.25rem;
+            }
+        }
     </style>
     <style>
         /* Additional styles for carousel */
@@ -496,6 +592,29 @@
     </style>
 </head>
 <body>
+    <!-- Tip Jar Button -->
+    <a href="https://buy.stripe.com/eVqeVcagi5Jm0qHffsfrW02" class="tipjar-button" target="_blank" aria-label="Tip Jar">
+        <span class="tipjar-button-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <!-- Jar lid -->
+                <rect x="8.5" y="3" width="7" height="1.5" rx="0.25" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Jar threads/neck -->
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v1.5M15 4.5v1.5"/>
+                <!-- Jar body with taper -->
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 6c0 0 -1 0.5 -1 1.5v11.5a2 2 0 002 2h4a2 2 0 002-2V7.5c0-1 -1-1.5 -1-1.5"/>
+                <!-- Coins at bottom -->
+                <ellipse cx="10.5" cy="18.5" rx="1.5" ry="0.5" stroke-linecap="round"/>
+                <ellipse cx="14" cy="18" rx="1.5" ry="0.5" stroke-linecap="round"/>
+                <ellipse cx="12" cy="17.5" rx="1.5" ry="0.5" stroke-linecap="round"/>
+                <!-- Falling coin -->
+                <g class="tipjar-coin-animation">
+                    <ellipse cx="12" cy="10" rx="1.5" ry="0.5" stroke-linecap="round"/>
+                </g>
+            </svg>
+        </span>
+        <span class="tipjar-button-text">Tip Jar</span>
+    </a>
+    
     <header>
         <div class="container">
             <h1 class="logo"><span class="git">GIT</span> <span class="game-logo">GAME</span> <span class="show">SHOW</span></h1>
